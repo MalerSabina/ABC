@@ -16,6 +16,17 @@ module.exports = {
 
     addSolution: function (solution) {
 
+        for (let i = 0; i < solutionsPool.length; i++)
+        {
+            let existingSolution = solutionsPool[i];
+
+            if (solution.fitness > existingSolution.fitness)
+            {
+                isSolutionBetter = true;
+                break;
+            }
+        }
+
         if (solution.weight >= TO_DELETE)
         {
             result = result || solution;
@@ -93,11 +104,16 @@ module.exports = {
 
         // console.log(notRandomNumbers.join(','))
 
-        let index = Math.round(Math.random() * allLength);
+        let index = Math.round(Math.random() * (allLength - 1));
 
         // console.log(notRandomNumbers[index])
 
         let solutionIndex = notRandomNumbers[index];
+
+        if (!solutionsPool[solutionIndex])
+        {
+            a = 0
+        }
 
         return solutionsPool[solutionIndex];
     }
