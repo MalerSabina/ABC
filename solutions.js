@@ -9,6 +9,8 @@ module.exports = {
 
     init: function(maxPoolCount, toDelete) {
 
+        solutionsPool = [];
+        result = null;
         MAX_POOL_SIZE = maxPoolCount;
         TO_DELETE = toDelete;
 

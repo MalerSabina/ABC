@@ -1,5 +1,11 @@
 let generatedSequences = {};
 
+let init = function() {
+
+    generatedSequences = {};
+
+}
+
 let getRandomBlockSequence = function (bitCount, fromProbability, toProbability) {
 
     let sequence = '';
@@ -123,6 +129,7 @@ let shuffle = function (a) {
 }
 
 module.exports = {
+    init: init,
     getRandomBlockSequence: getRandomBlockSequence,
     getNearSequence: getNearSequence,
     sequencesToBlocks: sequencesToBlocks,

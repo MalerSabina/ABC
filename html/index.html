@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ABC</title>
+
+    <link rel="stylesheet" type="text/css" href="spinner.css">
+    <link rel="stylesheet" type="text/css" href="checkbox.css">
+
+    <style>
+
+        html {
+            background-color: darkslategrey;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+        }
+
+        .flex-container {
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            display: -webkit-box;
+            display: -moz-box;
+            display: -ms-flexbox;
+            display: -webkit-flex;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .window {
+            background-color: darkgray;
+            width: 400px;
+        }
+
+        .form {
+
+            margin: 30px;
+
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #run, #stop, #resultOk {
+
+            padding: 10px 30px;
+            border-radius: 7px;
+
+        }
+
+        .buttonContainer {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        input[id] {
+            height: 25px;
+            border-radius: 3px;
+            /*border: none;*/
+        }
+
+        input[id] + div {
+            margin-top: 10px;
+        }
+
+        .invalid {
+            border: 1px red solid;
+        }
+
+    </style>
+</head>
+<body>
+
+
+<div class="flex-container">
+
+    <h1 style="color: white; font-weight: bold;">ABC Algorithm</h1>
+
+    <div class="window">
+
+        <div class="form hidden" id="inputForm">
+
+            <div>Enter the amount of information to delete:</div>
+            <input type="text" id="weightToDelete">
+
+            <div>Enter the number of bee population:</div>
+            <input type="text" id="beeCount">
+
+            <div>Enter the maximum number of iterations:</div>
+            <input type="text" id="maxIterationCount">
+
+            <div>Enter the maximum number of fails for one bee:</div>
+            <input type="text" id="maxFailCountForOneBee">
+
+            <div>Enter the number of bits to change for one bee solution:</div>
+            <input type="text" id="maxBitsToChange">
+
+            <div>Enter the number of best solutions for "Best solution list":</div>
+            <input type="text" id="maxAvailableSolutionCount">
+
+            <div>Enter the maximum number of seconds to find a solution:</div>
+            <input type="text" id="maxWorkTime">
+
+            <div></div>
+            <label class="checkboxContainer">Set default parameters
+                <input type="checkbox" id="setDefaultParams" onchange="setDefaultParameters(this)">
+                <span class="checkmark"></span>
+            </label>
+
+            <div class="buttonContainer">
+                <button id="run" onclick="start();">Start</button>
+            </div>
+
+        </div>
+
+        <div id="loading" class="hidden">
+            <img src="img/thinking.png" width="100" height="100" border="2px" style="float: left; margin: 10px;">
+            <h1>Algorithm in the process.</h1>
+            <h4>This may take some time...</h4>
+            <div class="loader">Loading...</div>
+            <div class="buttonContainer">
+                <button id="stop" onclick="stop();">Stop</button>
+            </div>
+        </div>
+
+        <div id="result" class="hidden">
+            <img src="img/finished.jpg" width="100" height="100" border="2px" style="float: left; margin: 10px;">
+            <h3>You need to delete the following files:</h3>
+            <h4 id="files"></h4>
+            <h4>Deleting these files will free up - <span id="weight"></span> kilobytes</h4>
+            <div class="buttonContainer">
+                <button id="resultOk" onclick="resultOk();">OK</button>
+            </div>
+        </div>
+
+    </div>
+
+
+</div>
+
+<script>
+
+    let fields = {
+
+        weightToDelete: {
+            type: Number,
+            checkers: [
+                {
+                    checker: checkNumber,
+                    message: 'The field "<<<field>>>" is not a number!',
+                },
+                {
+                    checker: checkGreaterZero,
+                    message: 'The field "<<<field>>>" should be greater than zero!',
+                },
+                {
+                    checker: checkInteger,
+                    message: 'The field "<<<field>>>" should be integer!',
+                },
+            ]
+        },
+        beeCount: {
+            type: Number,
+            checkers: [
+                {
+                    checker: checkNumber,
+                    message: 'The field "<<<field>>>" is not a number!',
+                },
+                {
+                    checker: checkGreaterZero,
+                    message: 'The field "<<<field>>>" should be greater than zero!',
+                },
+                {
+                    checker: checkInteger,
+                    message: 'The field "<<<field>>>" should be integer!',
+                },
+            ]
+        },
+        maxIterationCount: {
+            type: Number,
+            checkers: [
+                {
+                    checker: checkNumber,
+                    message: 'The field "<<<field>>>" is not a number!',
+                },
+                {
+                    checker: checkGreaterZero,
+                    message: 'The field "<<<field>>>" should be greater than zero!',
+                },
+                {
+                    checker: checkInteger,
+                    message: 'The field "<<<field>>>" should be integer!',
+                },
+            ]
+        },
+        maxFailCountForOneBee: {
+            type: Number,
+            checkers: [
+                {
+                    checker: checkNumber,
+                    message: 'The field "<<<field>>>" is not a number!',
+                },
+                {
+                    checker: checkGreaterZero,
+                    message: 'The field "<<<field>>>" should be greater than zero!',
+                },
+                {
+                    checker: checkInteger,
+                    message: 'The field "<<<field>>>" should be integer!',
+                },
+            ]
+        },
+        maxBitsToChange: {
+            type: Number,
+            checkers: [
+                {
+                    checker: checkNumber,
+                    message: 'The field "<<<field>>>" is not a number!',
+                },
+                {
+                    checker: checkGreaterZero,
+                    message: 'The field "<<<field>>>" should be greater than zero!',
+                },
+                {
+                    checker: checkInteger,
+                    message: 'The field "<<<field>>>" should be integer!',
+                },
+            ]
+        },
+        maxAvailableSolutionCount: {
+            type: Number,
+            checkers: [
+                {
+                    checker: checkNumber,
+                    message: 'The field "<<<field>>>" is not a number!',
+                },
+                {
+                    checker: checkGreaterZero,
+                    message: 'The field "<<<field>>>" should be greater than zero!',
+                },
+                {
+                    checker: checkInteger,
+                    message: 'The field "<<<field>>>" should be integer!',
+                },
+            ]
+        },
+        maxWorkTime: {
+            type: Number,
+            checkers: [
+                {
+                    checker: checkNumber,
+                    message: 'The field "<<<field>>>" is not a number!',
+                },
+                {
+                    checker: checkGreaterZero,
+                    message: 'The field "<<<field>>>" should be greater than zero!',
+                },
+                {
+                    checker: checkInteger,
+                    message: 'The field "<<<field>>>" should be integer!',
+                },
+            ]
+        },
+
+    }
+
+    function setDefaultParameters(checkbox) {
+
+        let defaultValues =
+        {
+            beeCount: 30,
+            maxIterationCount: 30,
+            maxFailCountForOneBee: 5,
+            maxBitsToChange: 3,
+            maxAvailableSolutionCount: 3,
+            maxWorkTime: 25,
+        }
+
+        for (let option in defaultValues)
+        {
+            let el = document.querySelector(`#${option}`);
+
+            if (el)
+            {
+                el.value = checkbox.checked == true ? defaultValues[option] : '';
+            }
+
+        }
+    }
+
+    let replaceTagNames = function(value, result) {
+
+        for (let key in result)
+        {
+            let regex = new RegExp('\<\<\<' + key + '\>\>\>', 'g');
+            value = value.replace(regex, result[key]);
+
+        }
+
+        if (value.match(/<<<.*?>>>/))
+        {
+            return null;
+        }
+
+        return value;
+    }
+    
+    function checkNumber(value) {
+
+        let isOk = isNaN(parseInt(value)) == false;
+
+        return isOk;
+    }
+
+    function checkGreaterZero(value) {
+
+        value = parseInt(value);
+
+        if (value <= 0)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    function checkInteger(value) {
+
+        return Number.isInteger(Number(value));
+
+    }
+
+
+
+    function checkParameters() {
+
+        for (let field in fields)
+        {
+            let el = document.querySelector(`#${field}`);
+            let value = el && el.value;
+
+            let checkers = fields[field].checkers;
+            let isOk = true;
+
+            for (let i = 0; i < checkers.length; i++) {
+                let checkerObject = checkers[i];
+
+                isOk = checkerObject.checker(value);
+
+                if (!isOk)
+                {
+                    el.classList.add('invalid');
+
+                    let message = checkerObject.message;
+                    alert(replaceTagNames(message, {
+                        field: field
+                    }));
+                    el.focus();
+                    break;
+                }
+            }
+
+            if (isOk)
+            {
+                el.classList.remove('invalid');
+            }
+            else
+            {
+                return false;
+                break;
+            }
+        }
+
+        return true;
+    }
+
+    let XHR = function (url, args, options)
+    {
+
+        return new Promise(function (fulfill, reject) {
+
+            var xmlHttpRequest = new XMLHttpRequest();
+
+            xmlHttpRequest.onreadystatechange = function() {
+                if (this.readyState == 4) {
+
+                    if (this.status == 200)
+                    {
+                        var response = xmlHttpRequest.responseText;
+
+                        if (options && options.isJsonResponse == true)
+                        {
+                            try
+                            {
+                                response = JSON.parse(xmlHttpRequest.responseText);
+                            }
+                            catch (err)
+                            {
+                            }
+                        }
+
+                        fulfill(response);
+                        return;
+                    }
+
+                    reject(this);
+                }
+            };
+
+            var method = options && options.method || (args) ? 'POST': 'GET';
+
+            xmlHttpRequest.open(method, url, true);
+
+            var headers = options && options.headers || {};
+
+            for (var header in headers)
+            {
+                xmlHttpRequest.setRequestHeader(header, headers[header]);
+            }
+
+            var params = args || null;
+
+            if (params && typeof params != 'string')
+            {
+                params = JSON.stringify(args);
+            }
+
+            xmlHttpRequest.send(params);
+        })
+    }
+
+    function start() {
+
+        if (checkParameters() == false)
+        {
+            return;
+        }
+
+        let config = {};
+
+        for (let field in fields)
+        {
+            let value = document.querySelector(`#${field}`).value;
+
+            value = fields[field].type(value);
+
+            config[field] = value;
+        }
+
+        // alert(JSON.stringify(config), null, 4);
+
+        document.querySelector('#loading').classList.remove('hidden');
+        document.querySelector('#inputForm').classList.add('hidden');
+
+
+        XHR('/start', {
+            config: config
+        }, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-type': 'application/json',
+            }
+        })
+        .then(function () {
+
+            // return new Promise(function (f, r) {
+            //
+            //     setTimeout(function () {
+            //         f();
+            //     }, 2000);
+            //
+            // })
+
+        })
+        .then(function (response) {
+
+            status();
+
+        })
+    }
+    
+    function stop ()
+	{
+		XHR('/cancel', {
+		}, {
+			headers: {
+				'X-Requested-With': 'XMLHttpRequest',
+				'Content-type': 'application/json',
+			}
+		})
+	}
+	
+	function status ()
+	{
+
+		XHR('/status', {
+		}, {
+			headers: {
+				'X-Requested-With': 'XMLHttpRequest',
+				'Content-type': 'application/json',
+			},
+			isJsonResponse: true,
+		})
+        .then(function (response) {
+
+        	if (response.error == 0)
+            {
+            	let stat = response.status;
+
+				if (stat.isRun == true)
+				{
+					document.querySelector('#inputForm').classList.add('hidden');
+					document.querySelector('#loading').classList.remove('hidden');
+					document.querySelector('#result').classList.add('hidden');
+					setTimeout(status, 1000);
+					return;
+				}
+
+				if (stat.isRun == false && stat.result && document.querySelector('#loading').classList.contains('hidden') == false)
+				{
+					// Show result
+					document.querySelector('#files').innerText = stat.result.files.join(', ');
+					document.querySelector('#weight').innerText = stat.result.weight;
+
+					document.querySelector('#inputForm').classList.add('hidden');
+					document.querySelector('#loading').classList.add('hidden');
+					document.querySelector('#result').classList.remove('hidden');
+				}
+				else
+                {
+					document.querySelector('#inputForm').classList.remove('hidden');
+					document.querySelector('#loading').classList.add('hidden');
+					document.querySelector('#result').classList.add('hidden');
+				}
+
+            }
+
+
+		})
+        .finally(function () {
+
+        	// setTimeout(status, 1000);
+
+		})
+
+	}
+
+	status();
+
+	function resultOk ()
+	{
+		let resultElem = document.querySelector('#result');
+		resultElem.classList.add('hidden');
+
+		let inputForm = document.querySelector('#inputForm');
+		inputForm.classList.remove('hidden');
+	}
+
+
+</script>
+
+
+</body>
+</html>
