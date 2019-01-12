@@ -1,0 +1,63 @@
+let Promise = require('bluebird');
+let Express = require('express');
+let Compress = require('compression');
+let BodyParser = require('body-parser');
+
+let BeeHive = require('./beehive');
+
+// Create web app
+
+let app = Express();
+
+app.use(BodyParser.json());
+app.use(Compress());
+
+app.listen(80, function (err) {
+
+    if (err)
+    {
+        console.error(err);
+        return;
+    }
+
+    console.log('Started');
+
+});
+
+app.use(Express.static('./html', {
+    index: 'index.html',
+}));
+
+app.post('/start', function (req, res) {
+
+    let config = req.body.config;
+
+    BeeHive.run(config);
+
+    res.status(200).send({
+        error: 0,
+        message: 'Ok'
+    });
+
+})
+
+app.post('/cancel', function (req, res) {
+
+    BeeHive.cancel();
+
+    res.status(200).send({
+        error: 0,
+        message: 'Ok'
+    });
+
+})
+
+app.post('/status', function (req, res) {
+
+    res.status(200).send({
+        error: 0,
+        message: 'Ok',
+        status: BeeHive.status(),
+    });
+
+})
