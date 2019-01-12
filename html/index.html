@@ -110,6 +110,14 @@
             <div>Enter the maximum number of seconds to find a solution:</div>
             <input type="text" id="maxWorkTime">
 
+            <hr>
+
+            <div></div>
+            <label class="checkboxContainer">Use native C++ module
+                <input type="checkbox" id="isUseNativeModule">
+                <span class="checkmark"></span>
+            </label>
+
             <div></div>
             <label class="checkboxContainer">Set default parameters
                 <input type="checkbox" id="setDefaultParams" onchange="setDefaultParameters(this)">
@@ -269,6 +277,11 @@
                     message: 'The field "<<<field>>>" should be integer!',
                 },
             ]
+        },
+		isUseNativeModule: {
+        	type: Boolean,
+            prop: 'checked',
+            checkers: []
         },
 
     }
@@ -449,9 +462,11 @@
 
         for (let field in fields)
         {
-            let value = document.querySelector(`#${field}`).value;
+        	let fieldConfig = fields[field];
 
-            value = fields[field].type(value);
+            let value = document.querySelector(`#${field}`)[fieldConfig.prop || 'value'];
+
+            value = fieldConfig.type(value);
 
             config[field] = value;
         }

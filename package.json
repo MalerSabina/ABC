@@ -5,7 +5,7 @@
   "main": "beehive.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "call node-gyp clean configure build --arch=x64",
+    "build": "node-gyp clean configure build --arch=x64",
     "compile": "node-gyp rebuild"
   },
   "author": "",

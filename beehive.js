@@ -71,8 +71,16 @@ let getFileInfoForBlocks = function (blocks) {
 
 let getFitness = function (blocksToDelete, toDelete) {
 
-	// let info = Calc.getFileInfoForBlocks(blocksToDelete, INPUT);
-	let info = getFileInfoForBlocks(blocksToDelete, INPUT);
+	let info = null;
+
+	if (BeeHive.isUseNativeModule == true)
+	{
+		info = Calc.getFileInfoForBlocks(blocksToDelete, INPUT);
+	}
+	else
+	{
+		info = getFileInfoForBlocks(blocksToDelete, INPUT);
+	}
 
 	let memorySize = info.weight;
 
@@ -107,6 +115,7 @@ let BeeHive = {
 	maxWorkTime: 0,
 	isRun: false,
 	isCancel: false,
+	isUseNativeModule: false,
 
 	/**
 	 *
@@ -128,6 +137,7 @@ let BeeHive = {
 		BeeHive.maxWorkTime = options.maxWorkTime * 1000;
 		BeeHive.expiredAt = 0;
 		BeeHive.isCancel = false;
+		BeeHive.isUseNativeModule = options.isUseNativeModule || false;
 	},
 
 	initRandomSequences: function () {
