@@ -3,7 +3,8 @@ const FS = require('fs');
 let FILES = {};
 let BLOCKS = {};
 
-let inputCSV = FS.readFileSync('./input.csv').toString();
+let inputFile = process.argv[2] || './input.csv';
+let inputCSV = FS.readFileSync(inputFile).toString();
 
 // console.log(inputCSV);
 let lines = inputCSV.split('\n');
@@ -27,6 +28,19 @@ for (let i = 0; i < lines.length; i++) {
 
         case "F": {
 
+            /*
+            Fields order
+            00 - Literal 'F', meaning File
+            01 - file index (id)
+            02 - file name
+            03 - directory name
+            04 - blocks count in this file
+            05 - block id,
+            06 - block size
+            repeat 05-06
+
+            */
+
             let fileIndex = fields[1];
             let fileName = fields[2];
 
@@ -42,6 +56,11 @@ for (let i = 0; i < lines.length; i++) {
                 let pos = 5 + j * 2;
                 let blockIndex = fields[pos];
                 let blockWeight = Number(fields[pos + 1]);
+
+                if (blockIndex == "169")
+                {
+                    a = 0;
+                }
 
                 fileBlocks.push({
                     blockIndex: blockIndex,

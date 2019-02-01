@@ -4,6 +4,7 @@ const Calc = require('./build/Release/calc');
 let INPUT = require('./input');
 let Sequence = require('./sequence');
 let Solutions = require('./solutions');
+let BLOCK_KEYS = Object.keys(INPUT.BLOCKS);
 
 let getFileInfoForBlocks = function (blocks) {
 
@@ -208,12 +209,12 @@ let BeeHive = {
 	sendRandomBee: function (beeIndex) {
 
 		let range = BeeHive.getNextRange();
-		let sequence = Sequence.getRandomBlockSequence(Object.keys(INPUT.BLOCKS).length, range[0], range[1]);
+		let sequence = Sequence.getRandomBlockSequence(BLOCK_KEYS.length, range[0], range[1]);
 
 		return Promise.resolve()
 		.then(function () {
 
-			let blocks = Sequence.sequencesToBlocks(sequence);
+			let blocks = Sequence.sequencesToBlocks(sequence, BLOCK_KEYS);
 
 			// console.log(blocks.join(','));
 
@@ -264,7 +265,7 @@ let BeeHive = {
 					return result;
 				}
 
-				let blocks = Sequence.sequencesToBlocks(newSequence);
+				let blocks = Sequence.sequencesToBlocks(newSequence, BLOCK_KEYS);
 
 				let info = getFitness(blocks, BeeHive.weightToDelete);
 
@@ -354,6 +355,7 @@ let BeeHive = {
 
 				if (BeeHive.isExpired() == true)
 				{
+					BeeHive.cancel();
 					ERROR = 'TIMEOUT';
 					break;
 				}

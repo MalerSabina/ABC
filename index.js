@@ -21,6 +21,7 @@ app.listen(80, function (err) {
     }
 
     console.log('Started');
+    console.log('http://localhost');
 
 });
 
