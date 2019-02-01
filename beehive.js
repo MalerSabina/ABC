@@ -145,11 +145,11 @@ let BeeHive = {
 
 	initRandomSequences: function () {
 
-		let rangeCount = parseInt(100 / BeeHive.beeCount);
+		let rangeCount = 100 / BeeHive.beeCount;
 
 		for (let i = 0; i < BeeHive.beeCount; i++)
 		{
-			BeeHive.ranges.push([0, rangeCount * (i + 1)]);
+			BeeHive.ranges.push([0, parseInt(rangeCount * (i + 1))]);
 		}
 
 		BeeHive.rangeIndex = 0;
@@ -257,6 +257,7 @@ let BeeHive = {
 			let fitness = solution.fitness;
 
 			let result = null;
+			await Promise.delay(10);
 
 			while (iterationCount >= 0 && BeeHive.isCancel == false)
 			{
@@ -273,7 +274,7 @@ let BeeHive = {
 
 				info.sequence = newSequence;
 
-				await Promise.delay(0);
+				await Promise.delay(10);
 
 				if (info.fitness > fitness)
 				{
@@ -326,7 +327,7 @@ let BeeHive = {
 
 		while (true)
 		{
-			await Promise.delay(0);
+			await Promise.delay(10);
 
 			if (BeeHive.isAllBeesFree() == true)
 			{
@@ -358,7 +359,7 @@ let BeeHive = {
 
 			while (isSolutionFound == false)
 			{
-				await Promise.delay(0);
+				await Promise.delay(10);
 
 				if (BeeHive.isCancel == true)
 				{

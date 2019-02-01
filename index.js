@@ -55,7 +55,9 @@ app.post('/cancel', function (req, res) {
 
 app.post('/status', function (req, res) {
 
-    res.status(200).send({
+    console.log('Status');
+
+    res.status(200).json({
         error: 0,
         message: 'Ok',
         status: BeeHive.status(),

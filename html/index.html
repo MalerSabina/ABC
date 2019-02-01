@@ -512,11 +512,14 @@
 				'Content-type': 'application/json',
 			}
 		})
+        .then(function () {
+
+        	status();
+		})
 	}
 	
 	function status ()
 	{
-
 		XHR('/status', {
 		}, {
 			headers: {
