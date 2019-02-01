@@ -540,11 +540,14 @@
 					return;
 				}
 
-				if (stat.isRun == false && stat.result && document.querySelector('#loading').classList.contains('hidden') == false)
+				if (stat.isRun == false && stat.hasResult)
 				{
 					// Show result
-					document.querySelector('#files').innerText = stat.result.files.join(', ');
-					document.querySelector('#weight').innerText = stat.result.weight;
+					let files = stat.result && stat.result.files.join(', ') || 'Could not find a solution';
+					let weight = stat.result && stat.result.weight || 0;
+
+					document.querySelector('#files').innerText = files;
+					document.querySelector('#weight').innerText = weight;
 
 					document.querySelector('#inputForm').classList.add('hidden');
 					document.querySelector('#loading').classList.add('hidden');

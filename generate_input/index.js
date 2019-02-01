@@ -3,8 +3,8 @@ var CSVFromJSON = require('csvfromjson');
 var Promise = require('bluebird');
 var Fs = require('fs');
 
-let FILE_COUNT = 1000;
-let BLOCKS_COUNT = 1000;
+let FILE_COUNT = 100;
+let BLOCKS_COUNT = 10000;
 let BLOCK_SIZE = [1, 65535];
 let FILES_PER_BLOCK = [1, FILE_COUNT >> 1];
 let OUTPUT_FILE = __dirname + '/input.csv';

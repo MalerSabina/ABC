@@ -115,6 +115,7 @@ let BeeHive = {
 	weightToDelete: 0,
 	maxWorkTime: 0,
 	isRun: false,
+	hasResult: false,
 	isCancel: false,
 	isUseNativeModule: false,
 
@@ -138,6 +139,7 @@ let BeeHive = {
 		BeeHive.maxWorkTime = options.maxWorkTime * 1000;
 		BeeHive.expiredAt = 0;
 		BeeHive.isCancel = false;
+		BeeHive.hasResult = false;
 		BeeHive.isUseNativeModule = options.isUseNativeModule || false;
 	},
 
@@ -320,6 +322,20 @@ let BeeHive = {
 		return true;
 	},
 
+	waitForCompletion: async function () {
+
+		while (true)
+		{
+			await Promise.delay(0);
+
+			if (BeeHive.isAllBeesFree() == true)
+			{
+				break;
+			}
+		}
+
+	},
+
 	find: function () {
 
 		return Promise.resolve()
@@ -342,25 +358,22 @@ let BeeHive = {
 
 			while (isSolutionFound == false)
 			{
+				await Promise.delay(0);
+
 				if (BeeHive.isCancel == true)
 				{
 					ERROR = 'CANCELLED';
-
-					if (BeeHive.isAllBeesFree() == true)
-					{
-						break;
-					}
-					continue;
+					await BeeHive.waitForCompletion();
+					break;
 				}
 
 				if (BeeHive.isExpired() == true)
 				{
 					BeeHive.cancel();
+					await BeeHive.waitForCompletion();
 					ERROR = 'TIMEOUT';
 					break;
 				}
-
-				await Promise.delay(0);
 
 				// TODO: Add completion check
 				// 2. Calc failure count and exit as well
@@ -397,13 +410,19 @@ let BeeHive = {
 				console.log(ERROR);
 			}
 
-			BeeHive.showSolution();
+			BeeHive.hasResult = true;
 		})
 	},
 
 	showSolution: function () {
 
 		let solutions = Solutions.getResult();
+
+		if (!solutions)
+		{
+			console.log('No solution was found');
+			return;
+		}
 
 		console.log({
 			fitness: solutions.fitness,
@@ -430,7 +449,8 @@ let BeeHive = {
 
 		let response = {
 			isRun: BeeHive.isRun,
-			result: BeeHive.isRun == false ? BeeHive.getSolution() : null,
+			hasResult: BeeHive.hasResult,
+			result: BeeHive.getSolution(),
 		}
 
 		return response;
@@ -445,7 +465,10 @@ let BeeHive = {
 			return;
 		}
 
+		console.log('Running...');
+
 		BeeHive.isRun = true;
+		BeeHive.hasResult = false;
 
 		let currentTime = new Date().getTime();
 
@@ -464,6 +487,8 @@ let BeeHive = {
 
 		BeeHive.find()
 		.then(function () {
+
+			BeeHive.showSolution();
 
 			console.log('Run time:', (new Date().getTime() - currentTime) / 1000, 'secs');
 
