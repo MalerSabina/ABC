@@ -5,6 +5,7 @@ let INPUT = require('./input');
 let Sequence = require('./sequence');
 let Solutions = require('./solutions');
 let BLOCK_KEYS = Object.keys(INPUT.BLOCKS);
+let WAIT_DELAY = 10;
 
 let getFileInfoForBlocks = function (blocks) {
 
@@ -257,7 +258,7 @@ let BeeHive = {
 			let fitness = solution.fitness;
 
 			let result = null;
-			await Promise.delay(10);
+			await Promise.delay(WAIT_DELAY);
 
 			while (iterationCount >= 0 && BeeHive.isCancel == false)
 			{
@@ -274,7 +275,7 @@ let BeeHive = {
 
 				info.sequence = newSequence;
 
-				await Promise.delay(10);
+				await Promise.delay(WAIT_DELAY);
 
 				if (info.fitness > fitness)
 				{
@@ -327,7 +328,7 @@ let BeeHive = {
 
 		while (true)
 		{
-			await Promise.delay(10);
+			await Promise.delay(WAIT_DELAY);
 
 			if (BeeHive.isAllBeesFree() == true)
 			{
@@ -359,7 +360,7 @@ let BeeHive = {
 
 			while (isSolutionFound == false)
 			{
-				await Promise.delay(10);
+				await Promise.delay(WAIT_DELAY);
 
 				if (BeeHive.isCancel == true)
 				{
