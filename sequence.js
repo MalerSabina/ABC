@@ -24,9 +24,9 @@ let getRandomBlockSequence = function (bitCount, fromProbability, toProbability)
 		}
 	}
 
-	shuffle(notRandomNumbers);
+	// shuffle(notRandomNumbers);
 
-	for (let j = 0; j < bitCount; j++)
+	for (let j = 0; j < 5; j++)
 	{
 		sequence = '';
 
@@ -122,7 +122,7 @@ let sequencesToBlocks = function(sequence, blockKeys) {
  */
 let shuffle = function (a) {
 	for (let i = a.length - 1; i > 0; i--) {
-		const j = Math.floor(Math.random() * (i + 1));
+		const j = Math.floor(Math.random() * (a.length));
 		[a[i], a[j]] = [a[j], a[i]];
 	}
 	return a;

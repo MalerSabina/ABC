@@ -5,15 +5,20 @@ let INPUT = require('./input');
 let Sequence = require('./sequence');
 let Solutions = require('./solutions');
 let BLOCK_KEYS = Object.keys(INPUT.BLOCKS);
-let WAIT_DELAY = 10;
+let WAIT_DELAY = 1;
 
-let getFileInfoForBlocks = function (blocks) {
+let getFileInfoForBlocks = async function (blocks) {
 
 	let filesMap = {};
 	let weight = 0;
 
 	for (let i = 0; i < blocks.length; i++)
 	{
+		if (i % 1000 == 0)
+		{
+			await Promise.delay(WAIT_DELAY);
+		}
+
 		let blockIndex = blocks[i];
 
 		if (!INPUT.BLOCKS[blockIndex])
@@ -21,10 +26,15 @@ let getFileInfoForBlocks = function (blocks) {
 			a = 0;
 		}
 
-		let filesForBlock = Object.keys(INPUT.BLOCKS[blockIndex].files);
+		let filesForBlock = INPUT.BLOCKS[blockIndex].filesKeys;
 
 		for (let j = 0; j < filesForBlock.length; j++)
 		{
+			if (j % 1000 == 0)
+			{
+				await Promise.delay(WAIT_DELAY);
+			}
+
 			let fileIndex = filesForBlock[j];
 			filesMap[fileIndex] = true;
 		}
@@ -54,10 +64,9 @@ let getFileInfoForBlocks = function (blocks) {
 
 	for (let blockIndex in blocksInFiles)
 	{
-
 		let block = blocksInFiles[blockIndex];
 
-		if (block.count == Object.keys(INPUT.BLOCKS[blockIndex].files).length)
+		if (block.count == INPUT.BLOCKS[blockIndex].filesKeys.length)
 		{
 			weight += INPUT.BLOCKS[blockIndex].blockWeight;
 		}
@@ -71,7 +80,7 @@ let getFileInfoForBlocks = function (blocks) {
 
 }
 
-let getFitness = function (blocksToDelete, toDelete) {
+let getFitness = async function (blocksToDelete, toDelete) {
 
 	let info = null;
 
@@ -81,7 +90,7 @@ let getFitness = function (blocksToDelete, toDelete) {
 	}
 	else
 	{
-		info = getFileInfoForBlocks(blocksToDelete, INPUT);
+		info = await getFileInfoForBlocks(blocksToDelete, INPUT);
 	}
 
 	let memorySize = info.weight;
@@ -214,28 +223,26 @@ let BeeHive = {
 		let range = BeeHive.getNextRange();
 		let sequence = Sequence.getRandomBlockSequence(BLOCK_KEYS.length, range[0], range[1]);
 
-		return Promise.resolve()
+		return Promise.delay(WAIT_DELAY)
 		.then(function () {
 
 			let blocks = Sequence.sequencesToBlocks(sequence, BLOCK_KEYS);
 
-			// console.log(blocks.join(','));
+			return getFitness(blocks, BeeHive.weightToDelete);
 
-			let solution = getFitness(blocks, BeeHive.weightToDelete);
-			solution.sequence = sequence;
-
-			return solution;
 		})
-		.then(function (result) {
+		.then(function (solution) {
 
-			if (result)
+			if (solution)
 			{
-				Solutions.addSolution(result);
+				solution.sequence = sequence;
+				Solutions.addSolution(solution);
 			}
 
 		})
 		.then(function () {
 
+			console.log(`Random bee ${beeIndex} finished`);
 			BeeHive.swarm[beeIndex] = null;
 
 		})
@@ -245,7 +252,7 @@ let BeeHive = {
 
 	sendBeeToPreciseSolution: function (beeIndex, solution) {
 
-		return Promise.resolve()
+		return Promise.delay(WAIT_DELAY)
 		.then(async function () {
 
 			if (!solution)
@@ -271,7 +278,7 @@ let BeeHive = {
 
 				let blocks = Sequence.sequencesToBlocks(newSequence, BLOCK_KEYS);
 
-				let info = getFitness(blocks, BeeHive.weightToDelete);
+				let info = await getFitness(blocks, BeeHive.weightToDelete);
 
 				info.sequence = newSequence;
 
@@ -306,6 +313,8 @@ let BeeHive = {
 		})
 		.then(function () {
 
+			console.log(`Precision bee ${beeIndex} finished`);
+
 			BeeHive.swarm[beeIndex] = null;
 
 		})
@@ -329,6 +338,8 @@ let BeeHive = {
 		while (true)
 		{
 			await Promise.delay(WAIT_DELAY);
+
+			console.log('Waiting for completion');
 
 			if (BeeHive.isAllBeesFree() == true)
 			{
@@ -394,14 +405,18 @@ let BeeHive = {
 				}
 
 				let availableSolutions = Solutions.getSolutions();
+				BeeHive.swarm[freeBeeIndex] = 1; // Mark as busy
 
 				if (availableSolutions.length < BeeHive.maxAvailableSolutionCount)
 				{
+					console.log('Send a random bee, index =', freeBeeIndex);
 					BeeHive.swarm[freeBeeIndex] = BeeHive.sendRandomBee(freeBeeIndex);
-				} else
+				}
+				else
 				{
 					let solution = Solutions.getSolutionToPrecise();
 
+					console.log('Send a bee to precise, index =', freeBeeIndex);
 					BeeHive.swarm[freeBeeIndex] = BeeHive.sendBeeToPreciseSolution(freeBeeIndex, solution);
 				}
 

@@ -80,6 +80,11 @@ for (let i = 0; i < lines.length; i++) {
                 BLOCKS[blockIndex].files[fileIndex] = true;
             }
 
+            for (let blockKey in BLOCKS)
+            {
+                BLOCKS[blockKey].filesKeys = Object.keys(BLOCKS[blockKey].files);
+            }
+
             if (FILES[fileIndex]) {
                 console.log('File index', fileIndex, 'already exists');
                 continue;
