@@ -5,7 +5,7 @@ let INPUT = require('./input');
 let Sequence = require('./sequence');
 let Solutions = require('./solutions');
 let BLOCK_KEYS = Object.keys(INPUT.BLOCKS);
-let WAIT_DELAY = 1;
+let WAIT_DELAY = 5;
 
 let getFileInfoForBlocks = async function (blocks) {
 
@@ -14,7 +14,7 @@ let getFileInfoForBlocks = async function (blocks) {
 
 	for (let i = 0; i < blocks.length; i++)
 	{
-		if (i % 1000 == 0)
+		if (i % 100 == 0)
 		{
 			await Promise.delay(WAIT_DELAY);
 		}
@@ -30,7 +30,12 @@ let getFileInfoForBlocks = async function (blocks) {
 
 		for (let j = 0; j < filesForBlock.length; j++)
 		{
-			if (j % 1000 == 0)
+			if (BeeHive.isCancel == true)
+			{
+				return;
+			}
+
+			if (j % 100 == 0)
 			{
 				await Promise.delay(WAIT_DELAY);
 			}
@@ -51,6 +56,16 @@ let getFileInfoForBlocks = async function (blocks) {
 
 		for (let j = 0; j < fileBlocks.length; j++)
 		{
+			if (BeeHive.isCancel == true)
+			{
+				return;
+			}
+
+			if (j % 100 == 0)
+			{
+				await Promise.delay(WAIT_DELAY);
+			}
+
 			let block = fileBlocks[j];
 
 			blocksInFiles[block.blockIndex] = blocksInFiles[block.blockIndex] || {
@@ -80,17 +95,28 @@ let getFileInfoForBlocks = async function (blocks) {
 
 }
 
+let getFileInfoForBlocksNative = async function(blocksToDelete, INPUT) {
+
+	return Calc.getFileInfoForBlocks(blocksToDelete, INPUT);
+
+}
+
 let getFitness = async function (blocksToDelete, toDelete) {
 
 	let info = null;
 
 	if (BeeHive.isUseNativeModule == true)
 	{
-		info = Calc.getFileInfoForBlocks(blocksToDelete, INPUT);
+		info = await getFileInfoForBlocksNative(blocksToDelete, INPUT);
 	}
 	else
 	{
-		info = await getFileInfoForBlocks(blocksToDelete, INPUT);
+		info = await getFileInfoForBlocks(blocksToDelete);
+	}
+
+	if (BeeHive.isCancel == true)
+	{
+		return;
 	}
 
 	let memorySize = info.weight;
@@ -252,7 +278,7 @@ let BeeHive = {
 
 	sendBeeToPreciseSolution: function (beeIndex, solution) {
 
-		return Promise.delay(WAIT_DELAY)
+		return Promise.resolve()
 		.then(async function () {
 
 			if (!solution)
@@ -265,7 +291,6 @@ let BeeHive = {
 			let fitness = solution.fitness;
 
 			let result = null;
-			await Promise.delay(WAIT_DELAY);
 
 			while (iterationCount >= 0 && BeeHive.isCancel == false)
 			{
@@ -280,12 +305,11 @@ let BeeHive = {
 
 				let info = await getFitness(blocks, BeeHive.weightToDelete);
 
-				info.sequence = newSequence;
+				// await Promise.delay(WAIT_DELAY);
 
-				await Promise.delay(WAIT_DELAY);
-
-				if (info.fitness > fitness)
+				if (info && info.fitness > fitness)
 				{
+					info.sequence = newSequence;
 					iterationCount = BeeHive.maxIterationCount;
 					result = info;
 					sequence = newSequence;

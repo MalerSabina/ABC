@@ -48,13 +48,19 @@ let getRandomBlockSequence = function (bitCount, fromProbability, toProbability)
 	return sequence;
 }
 
+let replaceAt = function (str, pos, char) {
+
+	return str.substr(0, pos) + char + str.substr(pos + 1);
+
+}
+
 let getNearSequence = function(sequence, maxBitsToChange) {
 
 	let bitsCount = sequence.length;
 
-	for (let i = 0; i < bitsCount; i++) {
+	for (let i = 0; i < maxBitsToChange * 2; i++) {
 
-		let newSequence = sequence.split('');
+		let newSequence = sequence;
 
 		let bitsToChange = 1 + Math.round(Math.random() * (maxBitsToChange - 1));
 
@@ -64,7 +70,7 @@ let getNearSequence = function(sequence, maxBitsToChange) {
 			let pos = Math.floor(Math.random() * bitsCount);
 
 			let k = 0;
-			for (k = 0; k < bitsCount; k++) {
+			for (k = 0; k < maxBitsToChange * 2; k++) {
 
 				if ( pos + k < bitsCount - 1 && newSequence[pos + k] != bit)
 				{
@@ -82,11 +88,9 @@ let getNearSequence = function(sequence, maxBitsToChange) {
 
 			if (k < bitsCount)
 			{
-				newSequence[pos] = bit;
+				newSequence = replaceAt(newSequence, pos, bit);
 			}
 		}
-
-		newSequence = newSequence.join('');
 
 		if (generatedSequences[newSequence])
 		{
