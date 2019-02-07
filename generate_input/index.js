@@ -3,11 +3,11 @@ var CSVFromJSON = require('csvfromjson');
 var Promise = require('bluebird');
 var Fs = require('fs');
 
-let FILE_COUNT = 100;
-let BLOCKS_COUNT = 10000;
+let FILE_COUNT = 1000;
+let BLOCKS_COUNT = 1000;
 let BLOCK_SIZE = [1, 65535];
 let FILES_PER_BLOCK = [1, FILE_COUNT >> 1];
-let OUTPUT_FILE = __dirname + '/input.csv';
+let OUTPUT_FILE = __dirname + `/input-${FILE_COUNT}-${BLOCKS_COUNT}.csv`;
 
 
 let getUniqueRandomSequence = function (from, to, count, probabilities)
@@ -48,6 +48,7 @@ Promise.resolve()
 
 	for (let i = 0; i < BLOCKS_COUNT; i++)
 	{
+		let blockSize = BLOCK_SIZE[0] + Math.floor(Math.random() * (BLOCK_SIZE[1] - BLOCK_SIZE[0]));
 		let filesCount = Math.floor(Math.random() * (FILE_COUNT >> 1));
 
 		if (filesCount == 0)
@@ -60,8 +61,6 @@ Promise.resolve()
 		for (let j = 0; j < filesSequence.length; j++)
 		{
 			let fileIndex = filesSequence[j];
-
-			let blockSize = BLOCK_SIZE[0] + Math.floor(Math.random() * (BLOCK_SIZE[1] - BLOCK_SIZE[0]));
 
 			FILES[fileIndex].push({
 				blockIndex: i,

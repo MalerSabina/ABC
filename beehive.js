@@ -77,6 +77,8 @@ let getFileInfoForBlocks = async function (blocks) {
 		}
 	}
 
+	let blocksToRemove = {};
+
 	for (let blockIndex in blocksInFiles)
 	{
 		let block = blocksInFiles[blockIndex];
@@ -84,12 +86,13 @@ let getFileInfoForBlocks = async function (blocks) {
 		if (block.count == INPUT.BLOCKS[blockIndex].filesKeys.length)
 		{
 			weight += INPUT.BLOCKS[blockIndex].blockWeight;
+			blocksToRemove[blockIndex] = true;
 		}
 	}
 
 	return {
 		files: files,
-		blocks: Object.keys(blocksInFiles),
+		blocks: Object.keys(blocksToRemove),
 		weight: weight,
 	}
 

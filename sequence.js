@@ -70,7 +70,7 @@ let getNearSequence = function(sequence, maxBitsToChange) {
 			let pos = Math.floor(Math.random() * bitsCount);
 
 			let k = 0;
-			for (k = 0; k < maxBitsToChange * 2; k++) {
+			for (k = 0; k < bitsCount; k++) {
 
 				if ( pos + k < bitsCount - 1 && newSequence[pos + k] != bit)
 				{
