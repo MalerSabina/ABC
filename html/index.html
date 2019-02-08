@@ -50,7 +50,7 @@
             display: none;
         }
 
-        #run, #stop, #resultOk {
+        #run, #stop, #resultOk, #askStopOk, #askStopCancel {
 
             padding: 10px 30px;
             border-radius: 7px;
@@ -74,6 +74,13 @@
 
         .invalid {
             border: 1px red solid;
+        }
+
+        #result h4 {
+            max-height: 200px;
+            overflow: auto;
+            margin-right: 10px;
+            scrollbar-width: thin;
         }
 
     </style>
@@ -136,7 +143,7 @@
             <h4>This may take some time...</h4>
             <div class="loader">Loading...</div>
             <div class="buttonContainer">
-                <button id="stop" onclick="stop();">Stop</button>
+                <button id="stop" onclick="askStop();">Cancel</button>
             </div>
         </div>
 
@@ -147,6 +154,16 @@
             <h4>Deleting these files will free up - <span id="weight"></span> kilobytes</h4>
             <div class="buttonContainer">
                 <button id="resultOk" onclick="resultOk();">OK</button>
+            </div>
+        </div>
+
+        <div id="askStop" class="hidden">
+            <img src="img/thinking.png" width="100" height="100" border="2px" style="float: left; margin: 10px;">
+            <h1>Algorithm in the process.</h1>
+            <h4>Are you sure that you want to cancel a process?</h4>
+            <div class="buttonContainer">
+                <button id="askStopOk" onclick="stop();">OK</button>
+                <button id="askStopCancel" onclick="askStopCancel();">Cancel</button>
             </div>
         </div>
 
@@ -518,6 +535,22 @@
 		})
 	}
 	
+	function askStop()
+	{
+		document.querySelector('#askStop').classList.remove('hidden');
+		document.querySelector('#inputForm').classList.add('hidden');
+		document.querySelector('#loading').classList.add('hidden');
+		document.querySelector('#result').classList.add('hidden');
+	}
+	
+	function askStopCancel()
+	{
+		document.querySelector('#askStop').classList.add('hidden');
+		document.querySelector('#inputForm').classList.add('hidden');
+		document.querySelector('#loading').classList.remove('hidden');
+		document.querySelector('#result').classList.add('hidden');
+	}
+	
 	function status ()
 	{
 		XHR('/status', {
@@ -536,9 +569,16 @@
 
 				if (stat.isRun == true)
 				{
-					document.querySelector('#inputForm').classList.add('hidden');
-					document.querySelector('#loading').classList.remove('hidden');
-					document.querySelector('#result').classList.add('hidden');
+					let isAskStop = !document.querySelector('#askStop').classList.contains('hidden');
+
+					if (isAskStop == false)
+                    {
+						document.querySelector('#askStop').classList.add('hidden');
+						document.querySelector('#inputForm').classList.add('hidden');
+						document.querySelector('#loading').classList.remove('hidden');
+						document.querySelector('#result').classList.add('hidden');
+                    }
+
 					setTimeout(status, 1000);
 					return;
 				}
@@ -552,12 +592,14 @@
 					document.querySelector('#files').innerText = files;
 					document.querySelector('#weight').innerText = weight;
 
+					document.querySelector('#askStop').classList.add('hidden');
 					document.querySelector('#inputForm').classList.add('hidden');
 					document.querySelector('#loading').classList.add('hidden');
 					document.querySelector('#result').classList.remove('hidden');
 				}
 				else
                 {
+					document.querySelector('#askStop').classList.add('hidden');
 					document.querySelector('#inputForm').classList.remove('hidden');
 					document.querySelector('#loading').classList.add('hidden');
 					document.querySelector('#result').classList.add('hidden');

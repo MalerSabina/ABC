@@ -586,18 +586,18 @@ var measureMe = async function(runner) {
 // console.log(Calc.getFileInfoForBlocks([64, 76], INPUT));
 // console.log(await getFileInfoForBlocks([64, 76]));
 
-(async function()
-{
-	WAIT_DELAY = 0;
-
-	await measureMe(function () {
-		return getFileInfoForBlocksNative([64, 76, 25, 24, 38, 49]);
-	})
-
-	await measureMe(function () {
-		return getFileInfoForBlocks([64, 76, 25, 24, 38, 49]);
-	})
-}());
+// (async function()
+// {
+// 	WAIT_DELAY = 0;
+//
+// 	await measureMe(function () {
+// 		return getFileInfoForBlocksNative([64, 76, 25, 24, 38, 49]);
+// 	})
+//
+// 	await measureMe(function () {
+// 		return getFileInfoForBlocks([64, 76, 25, 24, 38, 49]);
+// 	})
+// }());
 
 
 // findTheBestRandomSolution();
