@@ -14,7 +14,7 @@ let getFileInfoForBlocks = async function (blocks) {
 
 	for (let i = 0; i < blocks.length; i++)
 	{
-		if (i % 100 == 0)
+		if (WAIT_DELAY && i % 100 == 0)
 		{
 			await Promise.delay(WAIT_DELAY);
 		}
@@ -35,7 +35,7 @@ let getFileInfoForBlocks = async function (blocks) {
 				return;
 			}
 
-			if (j % 100 == 0)
+			if (WAIT_DELAY && j % 100 == 0)
 			{
 				await Promise.delay(WAIT_DELAY);
 			}
@@ -54,6 +54,8 @@ let getFileInfoForBlocks = async function (blocks) {
 		let file = files[i];
 		let fileBlocks = INPUT.FILES[file].fileBlocks;
 
+		// console.log('fileBlocks.length =', fileBlocks.length);
+
 		for (let j = 0; j < fileBlocks.length; j++)
 		{
 			if (BeeHive.isCancel == true)
@@ -61,7 +63,7 @@ let getFileInfoForBlocks = async function (blocks) {
 				return;
 			}
 
-			if (j % 100 == 0)
+			if (WAIT_DELAY && j % 100 == 0)
 			{
 				await Promise.delay(WAIT_DELAY);
 			}
@@ -98,7 +100,7 @@ let getFileInfoForBlocks = async function (blocks) {
 
 }
 
-let getFileInfoForBlocksNative = async function(blocksToDelete, INPUT) {
+let getFileInfoForBlocksNative = async function(blocksToDelete) {
 
 	return Calc.getFileInfoForBlocks(blocksToDelete, INPUT);
 
@@ -110,7 +112,7 @@ let getFitness = async function (blocksToDelete, toDelete) {
 
 	if (BeeHive.isUseNativeModule == true)
 	{
-		info = await getFileInfoForBlocksNative(blocksToDelete, INPUT);
+		info = await getFileInfoForBlocksNative(blocksToDelete);
 	}
 	else
 	{
@@ -180,6 +182,8 @@ let BeeHive = {
 		BeeHive.isCancel = false;
 		BeeHive.hasResult = false;
 		BeeHive.isUseNativeModule = options.isUseNativeModule || false;
+
+		WAIT_DELAY = Number((BeeHive.beeCount / 60).toFixed(1));
 	},
 
 	initRandomSequences: function () {
@@ -252,7 +256,12 @@ let BeeHive = {
 		let range = BeeHive.getNextRange();
 		let sequence = Sequence.getRandomBlockSequence(BLOCK_KEYS.length, range[0], range[1]);
 
-		return Promise.delay(WAIT_DELAY)
+		return Promise.resolve()
+		.then(function () {
+
+			return WAIT_DELAY && Promise.delay(WAIT_DELAY);
+
+		})
 		.then(function () {
 
 			let blocks = Sequence.sequencesToBlocks(sequence, BLOCK_KEYS);
@@ -364,7 +373,7 @@ let BeeHive = {
 
 		while (true)
 		{
-			await Promise.delay(WAIT_DELAY);
+			await Promise.delay(10);
 
 			console.log('Waiting for completion');
 
@@ -398,7 +407,7 @@ let BeeHive = {
 
 			while (isSolutionFound == false)
 			{
-				await Promise.delay(WAIT_DELAY);
+				await Promise.delay(10);
 
 				if (BeeHive.isCancel == true)
 				{
@@ -559,10 +568,37 @@ module.exports = {
 	status: BeeHive.status,
 }
 
+var measureMe = async function(runner) {
+
+	let cTime = new Date().getTime();
+
+	await runner()
+	.then(function (res) {
+
+		console.log('Elapsed:', (new Date().getTime() - cTime));
+
+		// console.log(res);
+
+	})
+
+};
 
 // console.log(Calc.getFileInfoForBlocks([64, 76], INPUT));
+// console.log(await getFileInfoForBlocks([64, 76]));
 
-// console.log(getFileInfoForBlocks([64, 76], INPUT));
+(async function()
+{
+	WAIT_DELAY = 0;
+
+	await measureMe(function () {
+		return getFileInfoForBlocksNative([64, 76, 25, 24, 38, 49]);
+	})
+
+	await measureMe(function () {
+		return getFileInfoForBlocks([64, 76, 25, 24, 38, 49]);
+	})
+}());
+
 
 // findTheBestRandomSolution();
 
