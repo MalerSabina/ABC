@@ -183,7 +183,7 @@ let BeeHive = {
 		BeeHive.hasResult = false;
 		BeeHive.isUseNativeModule = options.isUseNativeModule || false;
 
-		WAIT_DELAY = Number((BeeHive.beeCount / 60).toFixed(1));
+		WAIT_DELAY = Number((BeeHive.beeCount / 50).toFixed(1));
 	},
 
 	initRandomSequences: function () {
