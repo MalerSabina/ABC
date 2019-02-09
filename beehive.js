@@ -112,7 +112,7 @@ let getFitness = async function (blocksToDelete, toDelete) {
 
 	if (BeeHive.isUseNativeModule == true)
 	{
-		info = await getFileInfoForBlocksNative(blocksToDelete);
+		info = await Calc.getFileInfoForBlocks(blocksToDelete, INPUT);
 	}
 	else
 	{
@@ -572,13 +572,16 @@ var measureMe = async function(runner) {
 
 	let cTime = new Date().getTime();
 
-	await runner()
+	return runner()
 	.then(function (res) {
 
 		console.log('Elapsed:', (new Date().getTime() - cTime));
 
-		// console.log(res);
+		console.log(res);
 
+	})
+	.catch(function (err) {
+		console.error(err);
 	})
 
 };
@@ -586,18 +589,40 @@ var measureMe = async function(runner) {
 // console.log(Calc.getFileInfoForBlocks([64, 76], INPUT));
 // console.log(await getFileInfoForBlocks([64, 76]));
 
-// (async function()
-// {
-// 	WAIT_DELAY = 0;
-//
-// 	await measureMe(function () {
-// 		return getFileInfoForBlocksNative([64, 76, 25, 24, 38, 49]);
-// 	})
-//
-// 	await measureMe(function () {
-// 		return getFileInfoForBlocks([64, 76, 25, 24, 38, 49]);
-// 	})
-// }());
+(async function()
+{
+	WAIT_DELAY = 0;
+
+	try
+	{
+		// Calc.getFileInfoForBlocks([64, 76, 25, 24, 38, 49], INPUT)
+		// .then(function (res) {
+		//
+		// 	console.log(res);
+		//
+		// })
+		// .catch(function (err) {
+		//
+		// 	console.error(err);
+		//
+		// })
+		
+		
+		// await measureMe(function () {
+		// 	return Calc.getFileInfoForBlocks([64, 76, 25, 24, 38, 49], INPUT);
+		// 	// return getFileInfoForBlocksNative([64, 76, 25, 24, 38, 49]);
+		// })
+
+		// await measureMe(function () {
+		// 	return getFileInfoForBlocks([64, 76, 25, 24, 38, 49]);
+		// })
+
+	}
+	catch (e)
+	{
+		console.error(e);
+	}
+}());
 
 
 // findTheBestRandomSolution();
