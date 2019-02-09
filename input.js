@@ -131,4 +131,5 @@ for (let i = 0; i < lines.length; i++) {
 module.exports = {
     FILES: FILES,
     BLOCKS: BLOCKS,
+    BLOCKS_KEYS: Object.keys(BLOCKS),
 }

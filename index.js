@@ -1,11 +1,15 @@
+/**
+ * Entry point for a project
+ *
+ * Creates web server
+ *
+ */
 let Promise = require('bluebird');
 let Express = require('express');
 let Compress = require('compression');
 let BodyParser = require('body-parser');
 
 let BeeHive = require('./beehive');
-
-// Create web app
 
 let app = Express();
 

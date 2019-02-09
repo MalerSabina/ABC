@@ -1,3 +1,10 @@
+/**
+ * Generates new block sequences
+ * Stores already generated sequences *
+ *
+ * @type {{}}
+ */
+
 let generatedSequences = {};
 
 let init = function() {
@@ -6,6 +13,15 @@ let init = function() {
 
 }
 
+/**
+ *
+ * Generates a random sequence of bits with defined probability of 1
+ *
+ * @param bitCount
+ * @param fromProbability
+ * @param toProbability
+ * @returns {string}
+ */
 let getRandomBlockSequence = function (bitCount, fromProbability, toProbability) {
 
 	let sequence = '';
@@ -48,12 +64,27 @@ let getRandomBlockSequence = function (bitCount, fromProbability, toProbability)
 	return sequence;
 }
 
+/**
+ * replaces a char in specified position
+ *
+ * @param str
+ * @param pos
+ * @param char
+ * @returns {string}
+ */
 let replaceAt = function (str, pos, char) {
 
 	return str.substr(0, pos) + char + str.substr(pos + 1);
 
 }
 
+/**
+ * Generates a new sequence closed to given one
+ *
+ * @param sequence
+ * @param maxBitsToChange
+ * @returns {*}
+ */
 let getNearSequence = function(sequence, maxBitsToChange) {
 
 	let bitsCount = sequence.length;
@@ -105,6 +136,13 @@ let getNearSequence = function(sequence, maxBitsToChange) {
 	return '';
 }
 
+/**
+ * remaps a bit sequence to blocks array representation
+ *
+ * @param sequence
+ * @param blockKeys
+ * @returns {Array}
+ */
 let sequencesToBlocks = function(sequence, blockKeys) {
 
 	let blocks = [];

@@ -1,17 +1,38 @@
+/**
+ *
+ * Implementation of ABC Algorithm and adaptation to task of finding a block solutions *
+ *
+ */
+
+// use Bluebird promises library
 let Promise = require('bluebird');
+// Use C++ module for calculation
 const Calc = require('./build/Release/calc');
 
+
+// Initial definitions
+// ===================
+// Read and prepare input data in optimal format (using hashmaps and arrays)
 let INPUT = require('./input');
+// Random Blocks Sequences generator
 let Sequence = require('./sequence');
+// Solutions storage
 let Solutions = require('./solutions');
-let BLOCK_KEYS = Object.keys(INPUT.BLOCKS);
+// Thread idle time
 let WAIT_DELAY = 5;
 
+/**
+ * Calculates a weight of specified blocks when trying to delete them *
+ *
+ * @param blocks
+ * @returns {Promise<{blocks: string[], files: string[], weight: number}>}
+ */
 let getFileInfoForBlocks = async function (blocks) {
 
 	let filesMap = {};
 	let weight = 0;
 
+	// Prepare which files contain these blocks
 	for (let i = 0; i < blocks.length; i++)
 	{
 		if (WAIT_DELAY && i % 100 == 0)
@@ -20,12 +41,6 @@ let getFileInfoForBlocks = async function (blocks) {
 		}
 
 		let blockIndex = blocks[i];
-
-		if (!INPUT.BLOCKS[blockIndex])
-		{
-			a = 0;
-		}
-
 		let filesForBlock = INPUT.BLOCKS[blockIndex].filesKeys;
 
 		for (let j = 0; j < filesForBlock.length; j++)
@@ -100,12 +115,20 @@ let getFileInfoForBlocks = async function (blocks) {
 
 }
 
+// Wrapper for native module to return Promise
 let getFileInfoForBlocksNative = async function(blocksToDelete) {
 
 	return Calc.getFileInfoForBlocks(blocksToDelete, INPUT);
 
 }
 
+/**
+ * Analyze blocks weight and calculate fitness parameter for given blocks
+ *
+ * @param blocksToDelete - arrays of blocks
+ * @param toDelete - data count in bytes to delete
+ * @returns {Promise<*>}
+ */
 let getFitness = async function (blocksToDelete, toDelete) {
 
 	let info = null;
@@ -141,6 +164,11 @@ let getFitness = async function (blocksToDelete, toDelete) {
 	return info;
 }
 
+/**
+ * BeeHive - main class instance to control bees, generate block sequences and analyzing results
+ * @type {{cancel: BeeHive.cancel, rangeIndex: number, ranges: Array, maxBitsToChange: number, initRandomSequences: BeeHive.initRandomSequences, run: BeeHive.run, getFreeBee: BeeHive.getFreeBee, expiredAt: number, isUseNativeModule: boolean, sendRandomBee: (function(*): Promise<* | never>), find: (function(): Promise<T | never>), weightToDelete: number, isAllBeesFree: BeeHive.isAllBeesFree, beeFailures: Array, maxFailCountForOneBee: number, init: BeeHive.init, isCancel: boolean, getSolution: (function(): (*|null)), hasResult: boolean, maxAvailableSolutionCount: number, maxIterationCount: number, beeCount: number, waitForCompletion: BeeHive.waitForCompletion, getNextRange: (function(): *), showSolution: BeeHive.showSolution, swarm: Array, maxWorkTime: number, isAllBeesFailure: BeeHive.isAllBeesFailure, isRun: boolean, isExpired: BeeHive.isExpired, sendBeeToPreciseSolution: (function(*, *=): Promise<T | never>), status: (function(): {result: *, hasResult: boolean, isRun: boolean})}}
+ */
+
 let BeeHive = {
 
 	beeCount: 0,
@@ -161,6 +189,7 @@ let BeeHive = {
 	isUseNativeModule: false,
 
 	/**
+	 * Initializes BeeHive new object
 	 *
 	 * @param options Object
 	 * @param options.beeCount int
@@ -186,6 +215,9 @@ let BeeHive = {
 		WAIT_DELAY = Number((BeeHive.beeCount / 50).toFixed(1));
 	},
 
+	/**
+	 * Initializes how many and which ranges of sequences should be used for random bees
+	 */
 	initRandomSequences: function () {
 
 		let rangeCount = 100 / BeeHive.beeCount;
@@ -198,6 +230,11 @@ let BeeHive = {
 		BeeHive.rangeIndex = 0;
 	},
 
+	/**
+	 * returns true if a calculation time is over
+	 *
+	 * @returns {boolean}
+	 */
 	isExpired: function () {
 
 		if (BeeHive.expiredAt < new Date().getTime())
@@ -208,6 +245,11 @@ let BeeHive = {
 		return false;
 	},
 
+	/**
+	 *
+	 *
+	 * @returns a range of sequence in Round-robin order
+	 */
 	getNextRange: function () {
 
 		let range = BeeHive.ranges[BeeHive.rangeIndex];
@@ -217,6 +259,11 @@ let BeeHive = {
 		return range;
 	},
 
+	/**
+	 * Finds first free bee slot
+	 *
+	 * @returns {number} bee index
+	 */
 	getFreeBee: function () {
 
 		for (let i = 0; i < BeeHive.swarm.length; i++)
@@ -237,6 +284,11 @@ let BeeHive = {
 		return -1;
 	},
 
+	/**
+	 * returns true if all bees in the hive	 *
+	 *
+	 * @returns {boolean}
+	 */
 	isAllBeesFree: function () {
 
 		for (let i = 0; i < BeeHive.swarm.length; i++)
@@ -251,10 +303,16 @@ let BeeHive = {
 
 	},
 
+	/**
+	 * send a bee to explore a random sequence
+	 *
+	 * @param beeIndex
+	 * @returns {Promise<* | never>}
+	 */
 	sendRandomBee: function (beeIndex) {
 
 		let range = BeeHive.getNextRange();
-		let sequence = Sequence.getRandomBlockSequence(BLOCK_KEYS.length, range[0], range[1]);
+		let sequence = Sequence.getRandomBlockSequence(INPUT.BLOCK_KEYS.length, range[0], range[1]);
 
 		return Promise.resolve()
 		.then(function () {
@@ -264,7 +322,7 @@ let BeeHive = {
 		})
 		.then(function () {
 
-			let blocks = Sequence.sequencesToBlocks(sequence, BLOCK_KEYS);
+			let blocks = Sequence.sequencesToBlocks(sequence, INPUT.BLOCK_KEYS);
 
 			return getFitness(blocks, BeeHive.weightToDelete);
 
@@ -285,9 +343,15 @@ let BeeHive = {
 
 		})
 
-
 	},
 
+	/**
+	 * send a bee to try get better result based on explored solution
+	 *
+	 * @param beeIndex
+	 * @param solution
+	 * @returns {Promise<T | never>}
+	 */
 	sendBeeToPreciseSolution: function (beeIndex, solution) {
 
 		return Promise.resolve()
@@ -313,7 +377,7 @@ let BeeHive = {
 					return result;
 				}
 
-				let blocks = Sequence.sequencesToBlocks(newSequence, BLOCK_KEYS);
+				let blocks = Sequence.sequencesToBlocks(newSequence, INPUT.BLOCK_KEYS);
 
 				let info = await getFitness(blocks, BeeHive.weightToDelete);
 
@@ -356,6 +420,11 @@ let BeeHive = {
 		})
 	},
 
+	/**
+	 * returns true when all bees are explored their solutions for 100%
+	 *
+	 * @returns {boolean}
+	 */
 	isAllBeesFailure: function () {
 
 		for (let i = 0; i < BeeHive.beeFailures.length; i++)
@@ -369,6 +438,11 @@ let BeeHive = {
 		return true;
 	},
 
+	/**
+	 * Pauses an execution until all calculation finished
+	 *
+	 * @returns {Promise<void>}
+	 */
 	waitForCompletion: async function () {
 
 		while (true)
@@ -385,6 +459,11 @@ let BeeHive = {
 
 	},
 
+	/**
+	 * runs a calculation process
+	 *
+	 * @returns {Promise<T | never>}
+	 */
 	find: function () {
 
 		return Promise.resolve()
@@ -467,6 +546,9 @@ let BeeHive = {
 		})
 	},
 
+	/**
+	 * Prints solution in console
+	 */
 	showSolution: function () {
 
 		let solutions = Solutions.getResult();
@@ -486,18 +568,30 @@ let BeeHive = {
 		});
 	},
 
+	/**
+	 * returns a found solution
+	 * @returns {*|null}
+	 */
 	getSolution: function () {
 
 		return Solutions.getResult();
 
 	},
 
+	/**
+	 * Sets flag to return all bees to the hive
+	 */
 	cancel: function () {
 
 		BeeHive.isCancel = true;
 
 	},
 
+	/**
+	 * returns current result
+	 *
+	 * @returns {{result: *, hasResult: boolean, isRun: boolean}}
+	 */
 	status: function () {
 
 		let response = {
@@ -510,6 +604,10 @@ let BeeHive = {
 
 	},
 
+	/**
+	 * Initializes a new data and starts to find a solution
+	 * @param config
+	 */
 	run: function (config) {
 
 		if (BeeHive.isRun == true)
@@ -561,27 +659,27 @@ let BeeHive = {
 
 }
 
-
+// Public methods
 module.exports = {
 	run: BeeHive.run,
 	cancel: BeeHive.cancel,
 	status: BeeHive.status,
 }
 
-var measureMe = async function(runner) {
-
-	let cTime = new Date().getTime();
-
-	await runner()
-	.then(function (res) {
-
-		console.log('Elapsed:', (new Date().getTime() - cTime));
-
-		// console.log(res);
-
-	})
-
-};
+// var measureMe = async function(runner) {
+//
+// 	let cTime = new Date().getTime();
+//
+// 	await runner()
+// 	.then(function (res) {
+//
+// 		console.log('Elapsed:', (new Date().getTime() - cTime));
+//
+// 		// console.log(res);
+//
+// 	})
+//
+// };
 
 // console.log(Calc.getFileInfoForBlocks([64, 76], INPUT));
 // console.log(await getFileInfoForBlocks([64, 76]));
