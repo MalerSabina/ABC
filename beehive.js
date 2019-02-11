@@ -687,41 +687,43 @@ var measureMe = async function(runner) {
 // console.log(Calc.getFileInfoForBlocks([64, 76], INPUT));
 // console.log(await getFileInfoForBlocks([64, 76]));
 
-(async function()
-{
-	WAIT_DELAY = 0;
+// (async function()
+// {
+// 	WAIT_DELAY = 0;
+//
+// 	try
+// 	{
+// 		await measureMe(function () {
+// 			return Calc.getFileInfoForBlocks([64, 76, 25, 24, 38, 49], INPUT);
+// 			// return getFileInfoForBlocksNative([64, 76, 25, 24, 38, 49]);
+// 		})
+//
+// 		await measureMe(function () {
+// 			return getFileInfoForBlocks([64, 76, 25, 24, 38, 49]);
+// 		})
+// 	}
+// 	catch (e)
+// 	{
+// 		console.error(e);
+// 	}
+// }());
 
-	try
-	{
-		// Calc.getFileInfoForBlocks([64, 76, 25, 24, 38, 49], INPUT)
-		// .then(function (res) {
-		//
-		// 	console.log(res);
-		//
-		// })
-		// .catch(function (err) {
-		//
-		// 	console.error(err);
-		//
-		// })
+return Promise.resolve()
+.then(function () {
 
+	return Calc.getFileInfoForBlocks([64, 76, 25, 24, 38, 49], INPUT);
 
-		// await measureMe(function () {
-		// 	return Calc.getFileInfoForBlocks([64, 76, 25, 24, 38, 49], INPUT);
-		// 	// return getFileInfoForBlocksNative([64, 76, 25, 24, 38, 49]);
-		// })
+})
+.then(function (res) {
 
-		// await measureMe(function () {
-		// 	return getFileInfoForBlocks([64, 76, 25, 24, 38, 49]);
-		// })
+	console.log('1111', res);
 
-	}
-	catch (e)
-	{
-		console.error(e);
-	}
-}());
+})
+.catch(function (err) {
 
+	console.error('2222', err);
+
+})
 
 // findTheBestRandomSolution();
 

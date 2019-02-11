@@ -19,6 +19,17 @@ Napi::Value EmptyCallback(const Napi::CallbackInfo& info)
     return env.Undefined();
 }
 
+void copyNapiArrayToStringVector(std::vector<std::string>& dest, const Napi::Array& arr)
+{
+    int length = arr.Length();
+
+    for (int i = 0; i < length; i++)
+    {
+        std::string value = arr[i].ToString();
+        dest[i] = value;
+    }
+}
+
 class CalcWorker : public Napi::AsyncWorker {
 
 private:
@@ -26,11 +37,19 @@ private:
     Napi::Object Result;
     const Napi::CallbackInfo& info;
 
+    std::vector<std::string> blocks;
+    int blocksLength;
+
 public:
     CalcWorker(Napi::Function& callback, Napi::Promise::Deferred deferred, const Napi::CallbackInfo& cInfo)
     : Napi::AsyncWorker(callback), deferred(deferred), info(cInfo) {
 
         printf("Inside CalcWorker constructor\n");
+
+        const Napi::Array blocksParam = info[0].As<Napi::Array>();
+        blocksLength = blocksParam.Length();
+
+        copyNapiArrayToStringVector(blocks, blocksParam);
 
     }
     ~CalcWorker() {}
@@ -41,12 +60,15 @@ public:
 
             printf("Inside CalcWorker Execute\n");
 
-            Napi::Env env = info.Env();
+//            Napi::Env env = info.Env();
+//            Napi::HandleScope scope(env);
 
-            const Napi::Array blocks = info[0].As<Napi::Array>();
-            const Napi::Object INPUT = info[1].As<Napi::Object>();
-
-            printf("Pointer %p\n", INPUT);
+            Sleep(1000);
+//
+//            const Napi::Array blocks = info[0].As<Napi::Array>();
+//            const Napi::Object INPUT = info[1].As<Napi::Object>();
+//
+//            printf("Pointer %p\n", INPUT);
 
 //        const Napi::Object INPUT_BLOCKS = INPUT["BLOCKS"].ToObject();
 //        const Napi::Object INPUT_FILES = INPUT.Get("FILES").As<Napi::Object>();
@@ -121,7 +143,7 @@ public:
 //            }
 //        }
 
-        Result = Napi::Object::New(env);
+//        Result = Napi::Object::New(env);
 //        Result["files"] = files;
 //        Result["blocks"] = blocksInFilesKeys;
 //        Result["weight"] = weight;
@@ -137,6 +159,7 @@ public:
     }
 
     void OnError() {
+
         Napi::HandleScope scope(Env());
         deferred.Reject(Napi::Error::New(Env(), "Something wrong").Value());
 
@@ -148,7 +171,8 @@ public:
     void OnOK() {
         printf("OnOK CalcWorker\n");
 
-        Napi::HandleScope scope(Env());
+//        Napi::HandleScope scope(Env());
+//        Result = Napi::Object::New(Env());
         deferred.Resolve(Result);
 
         // Call empty function
@@ -160,25 +184,25 @@ public:
 
 Napi::Object getFileInfoForBlocks(const Napi::CallbackInfo& info)
 {
+
     printf("Inside getFileInfoForBlocks\n");
 
     Napi::Env env = info.Env();
-//    Napi::EscapableHandleScope scope(env);
+    Napi::HandleScope scope(env);
 
-    auto deferred = Napi::Promise::Deferred::New(info.Env());
+    Napi::Promise::Deferred deferred = Napi::Promise::Deferred::New(info.Env());
     printf("deferred created\n");
 
-//    Napi::Function callback = Napi::Function::New(env, EmptyCallback);
-//    printf("callback created\n");
+    Napi::Function callback = Napi::Function::New(env, EmptyCallback);
+    printf("callback created\n");
 
-//    CalcWorker* worker = new CalcWorker(callback, deferred, info);
+    CalcWorker* worker = new CalcWorker(callback, deferred, info);
 
     printf("CalcWorker created\n");
-//
-//    worker->Queue();
-//
-//    printf("Queue run\n");
 
+    worker->Queue();
+
+    printf("Queue run\n");
 
     return deferred.Promise();
 //    return scope.Escape(deferred.Promise()).ToObject();
