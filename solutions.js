@@ -1,3 +1,10 @@
+/**
+ * Stores solutions
+ *
+ *
+ * @type {number}
+ */
+
 let MAX_POOL_SIZE = 3;
 let TO_DELETE = 0;
 
@@ -7,6 +14,12 @@ let result = null;
 
 module.exports = {
 
+	/**
+	 * Initializes a new solution pool
+	 *
+	 * @param maxPoolCount
+	 * @param toDelete
+	 */
 	init: function(maxPoolCount, toDelete) {
 
 		solutionsPool = [];
@@ -16,6 +29,11 @@ module.exports = {
 
 	},
 
+	/**
+	 * Adds solution to the pool	 *
+	 *
+	 * @param solution
+	 */
 	addSolution: function (solution) {
 
 		for (let i = 0; i < solutionsPool.length; i++)
@@ -46,18 +64,33 @@ module.exports = {
 		solutionsPool = solutionsPool.slice(0, MAX_POOL_SIZE);
 	},
 
+	/**
+	 * returns a solution which can be represented as a result
+	 *
+	 * @returns {*}
+	 */
 	getResult: function () {
 
 		return result;
 
 	},
 
+	/**
+	 * Get solutions pool
+	 *
+	 * @returns {Array}
+	 */
 	getSolutions: function () {
 
 		return solutionsPool;
 
 	},
 
+	/**
+	 * Finds a solution to make it better
+	 *
+	 * @returns {*}
+	 */
 	getSolutionToPrecise: function () {
 
 		let length = solutionsPool.length;
