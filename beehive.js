@@ -83,14 +83,14 @@ let getFileInfoForBlocks = async function (blocks) {
 				await Promise.delay(WAIT_DELAY);
 			}
 
-			let block = fileBlocks[j];
+			let blockIndex = fileBlocks[j];
 
-			blocksInFiles[block.blockIndex] = blocksInFiles[block.blockIndex] || {
-				blockIndex: block.blockIndex,
+			blocksInFiles[blockIndex] = blocksInFiles[blockIndex] || {
+				blockIndex: blockIndex,
 				count: 0,
 			}
 
-			blocksInFiles[block.blockIndex].count++;
+			blocksInFiles[blockIndex].count++;
 		}
 	}
 
@@ -213,6 +213,8 @@ let BeeHive = {
 		BeeHive.isUseNativeModule = options.isUseNativeModule || false;
 
 		WAIT_DELAY = Number((BeeHive.beeCount / 50).toFixed(1));
+
+		Calc.setInput(INPUT);
 	},
 
 	/**
@@ -711,17 +713,20 @@ var measureMe = async function(runner) {
 return Promise.resolve()
 .then(function () {
 
-	return Calc.getFileInfoForBlocks([64, 76, 25, 24, 38, 49], INPUT);
+	Calc.setInput(INPUT);
+
+	// return Calc.getFileInfoForBlocks([64, 76, 25, 24, 38, 49]);
+	return Calc.getFileInfoForBlocks([64, 76]);
 
 })
 .then(function (res) {
 
-	console.log('1111', res);
+	console.log('result:', res);
 
 })
 .catch(function (err) {
 
-	console.error('2222', err);
+	console.error('err:', err);
 
 })
 
