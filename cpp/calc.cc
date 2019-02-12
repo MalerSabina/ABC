@@ -2,7 +2,8 @@
 #include <napi.h>
 //#include <node.h>
 #include <exception>
-#include <map>
+//#include <map>
+#include <unordered_map>
 
 #if defined _WIN32
 #include <windows.h>
@@ -42,9 +43,9 @@ void copyVectorToNapiArray(Napi::Env env, Napi::Array& arr, std::vector<std::str
     }
 }
 
-static std::map<std::string, std::vector<std::string> > FILES = {};
-static std::map<std::string, std::map<std::string, int> > BLOCKS = {};
-static std::map<std::string, int> BLOCK_WEIGHTS = {};
+static std::unordered_map<std::string, std::vector<std::string> > FILES = {};
+static std::unordered_map<std::string, std::unordered_map<std::string, int> > BLOCKS = {};
+static std::unordered_map<std::string, int> BLOCK_WEIGHTS = {};
 static std::vector<std::string> BLOCK_KEYS = {};
 
 Napi::Value setInput(const Napi::CallbackInfo& info)
@@ -62,12 +63,12 @@ Napi::Value setInput(const Napi::CallbackInfo& info)
     {
         std::string fileId = fileIds[i].ToString();
         std::vector<std::string> fileBlocks = {};
-        FILES[fileId] = fileBlocks;
 
         const Napi::Object fileItem = files.Get(fileId).As<Napi::Object>();
         const Napi::Array fileBlocksArray = fileItem["fileBlocks"].As<Napi::Array>();
 
         copyNapiArrayToVector(fileBlocks, fileBlocksArray);
+        FILES[fileId] = fileBlocks;
     }
 
     // BLOCKS processing
@@ -83,7 +84,7 @@ Napi::Value setInput(const Napi::CallbackInfo& info)
         BLOCK_WEIGHTS[blockId] = blockWeight;
 
         Napi::Object filesInBlockObject = blockItem["files"].As<Napi::Object>();
-        std::map<std::string, int> filesInBlock = {};
+        std::unordered_map<std::string, int> filesInBlock = {};
 
         const Napi::Array fileIdsInBlock = filesInBlockObject.GetPropertyNames();
 
@@ -101,9 +102,9 @@ Napi::Value setInput(const Napi::CallbackInfo& info)
 //    {
 //        std::string blockId = blockIds[i].ToString();
 //
-//        std::map<std::string, int> filesInBlock = BLOCKS[blockId];
+//        std::unordered_map<std::string, int> filesInBlock = BLOCKS[blockId];
 //
-//        for(std::map<std::string, int>::iterator it = filesInBlock.begin(); it != filesInBlock.end(); it++)
+//        for(std::unordered_map<std::string, int>::iterator it = filesInBlock.begin(); it != filesInBlock.end(); it++)
 //        {
 //            std::string key = it->first;
 ////            int value = it->second;
@@ -125,6 +126,7 @@ private:
     const Napi::CallbackInfo& info;
 
     std::vector<std::string> blocks = {};
+    int delay = 0;
 
     // Result variables
     int weight = 0;
@@ -135,8 +137,6 @@ public:
     CalcWorker(Napi::Function& callback, Napi::Promise::Deferred deferred, const Napi::CallbackInfo& cInfo)
     : Napi::AsyncWorker(callback), deferred(deferred), info(cInfo) {
 
-//        printf("Inside CalcWorker constructor\n");
-
         const Napi::Array blocksParam = info[0].As<Napi::Array>();
         copyNapiArrayToVector(blocks, blocksParam);
     }
@@ -146,44 +146,29 @@ public:
 
         try {
 
-            printf("Inside CalcWorker Execute\n");
+//            printf("Inside CalcWorker Execute\n");
 
-//            Sleep(1000);
+//        Sleep(delay);
 //
-//        Napi::Object filesMap = Napi::Object::New(env);
-          std::map<std::string, int> filesMap = {};
+          std::unordered_map<std::string, int> filesMap = {};
 
         for (int i = 0; i < blocks.size(); i++)
         {
-//            Napi::Number blockIndex = blocks.Get(i).ToNumber();
             std::string blockIndex = blocks[i];
 //            printf("blockIndex = %d\n", blockIndex.c_str());
 
-//            const Napi::Object inputBlocksAtIndex = INPUT_BLOCKS[blockIndex].ToObject();
-//            const Napi::Array filesForBlock = inputBlocksAtIndex["filesKeys"].As<Napi::Array>();
+            std::unordered_map<std::string, int> filesForBlock = BLOCKS[blockIndex];
 
-            std::map<std::string, int> filesForBlock = BLOCKS[blockIndex];
-
-            for(std::map<std::string, int>::iterator it = filesForBlock.begin(); it != filesForBlock.end(); it++)
+            for(std::unordered_map<std::string, int>::iterator it = filesForBlock.begin(); it != filesForBlock.end(); it++)
             {
                 std::string fileIndex = it->first;
                 filesMap[fileIndex] = 1;
             }
-
-//            for (int j = 0; j < (int)filesForBlock.Length(); j++)
-//            {
-//                Napi::String fileIndex = filesForBlock[j].As<Napi::String>();
-//                filesMap[fileIndex] = Napi::Boolean::New(env, true);
-//            }
         }
 
+        std::unordered_map<std::string, int> blocksInFiles = {};
 
-//        Napi::Object blocksInFiles = Napi::Object::New(env);
-        std::map<std::string, int> blocksInFiles = {};
-
-//        const Napi::Array files = filesMap.GetPropertyNames();
-
-        for(std::map<std::string, int>::iterator it = filesMap.begin(); it != filesMap.end(); it++)
+        for(std::unordered_map<std::string, int>::iterator it = filesMap.begin(); it != filesMap.end(); it++)
         {
             std::string fileIndex = it->first;
             files.push_back(fileIndex);
@@ -193,10 +178,7 @@ public:
 
         for (int i = 0; i < files.size(); i++)
         {
-//            const Napi::String file = files[i].ToString();
             std::string file = files[i];
-//            const Napi::Object fileObject = INPUT_FILES[file].ToObject();
-//            const Napi::Array fileBlocks = fileObject["fileBlocks"].As<Napi::Array>();
 
             std::vector<std::string> fileBlocks = FILES[file];
 //        printf("fileBlocksLength = %d\n", fileBlocks.size());
@@ -204,8 +186,6 @@ public:
             for (int j = 0; j < fileBlocks.size(); j++)
             {
                 // This operation is slow
-//                const Napi::Object block = fileBlocks[j].ToObject();
-//                const Napi::String blockIndex = block["blockIndex"].ToString();
                 std::string blockIndex = fileBlocks[j];
 
                 if (blocksInFiles.find(blockIndex) == blocksInFiles.end())
@@ -217,41 +197,19 @@ public:
                     blocksInFiles[blockIndex] = blocksInFiles[blockIndex] + 1;
                 }
 
-//                if (blocksInFiles.Has(blockIndex) == false)
-//                {
-//                    Napi::Object blockObject = Napi::Object::New(env);
-//                    blockObject[blockIndex] = blockIndex;
-//                    blockObject["count"] = 1;
-//                    blocksInFiles[blockIndex] = blockObject;
-//                }
-//                else
-//                {
-//                    Napi::Object blockObject = blocksInFiles.Get(blockIndex).As<Napi::Object>();
-//                    blockObject["count"] = blockObject.Get("count").As<Napi::Number>().Int32Value () + 1;
-//                }
             }
         }
 
-//        const Napi::Array blocksInFilesKeys = blocksInFiles.GetPropertyNames();
+        std::unordered_map<std::string, int> blocksToRemoveMap = {};
 
-        std::map<std::string, int> blocksToRemoveMap = {};
+//        printf("blocksInFiles length = %d\n", blocksInFiles.size());
 
-//        for (int i = 0; i < (int)blocksInFilesKeys.Length(); i++)
-        for(std::map<std::string, int>::iterator it = blocksInFiles.begin(); it != blocksInFiles.end(); it++)
+        for(std::unordered_map<std::string, int>::iterator it = blocksInFiles.begin(); it != blocksInFiles.end(); it++)
         {
-//            const Napi::String blockIndex = blocksInFilesKeys[i].ToString();
-
             std::string blockIndex = it->first;
-
-//            const Napi::Object block = blocksInFiles.Get(blockIndex).As<Napi::Object>();
-//            const int blockCount = block["count"].ToNumber().Int32Value();
             int blockCount = it->second;
 
-//            const Napi::Object inputBlocksAtIndex = INPUT_BLOCKS[blockIndex].ToObject();
-
-            std::map<std::string, int> inputBlocksAtIndex = BLOCKS[blockIndex];
-
-//            int filesBlockCount = inputBlocksAtIndex["filesKeys"].As<Napi::Array>().Length();
+            std::unordered_map<std::string, int> inputBlocksAtIndex = BLOCKS[blockIndex];
 
             int filesBlockCount = inputBlocksAtIndex.size();
 
@@ -263,7 +221,7 @@ public:
             }
         }
 
-        for(std::map<std::string, int>::iterator it = blocksToRemoveMap.begin(); it != blocksToRemoveMap.end(); it++)
+        for(std::unordered_map<std::string, int>::iterator it = blocksToRemoveMap.begin(); it != blocksToRemoveMap.end(); it++)
         {
             std::string key = it->first;
             blocksToRemove.push_back(key);
@@ -277,7 +235,7 @@ public:
             SetError(e.what());
         }
 
-        printf("Inside CalcWorker Execute with Result\n");
+//        printf("Inside CalcWorker Execute with Result\n");
     }
 
     void OnError() {

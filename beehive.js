@@ -116,7 +116,7 @@ let getFileInfoForBlocks = async function (blocks) {
 }
 
 // Wrapper for native module to return Promise
-let getFileInfoForBlocksNative = async function(blocksToDelete) {
+let getFileInfoForBlocksNative = async function (blocksToDelete) {
 
 	return Calc.getFileInfoForBlocks(blocksToDelete, INPUT);
 
@@ -135,9 +135,8 @@ let getFitness = async function (blocksToDelete, toDelete) {
 
 	if (BeeHive.isUseNativeModule == true)
 	{
-		info = await Calc.getFileInfoForBlocks(blocksToDelete, INPUT);
-	}
-	else
+		info = await Calc.getFileInfoForBlocks(blocksToDelete);
+	} else
 	{
 		info = await getFileInfoForBlocks(blocksToDelete);
 	}
@@ -287,7 +286,7 @@ let BeeHive = {
 	},
 
 	/**
-	 * returns true if all bees in the hive	 *
+	 * returns true if all bees in the hive     *
 	 *
 	 * @returns {boolean}
 	 */
@@ -528,8 +527,7 @@ let BeeHive = {
 				{
 					console.log('Send a random bee, index =', freeBeeIndex);
 					BeeHive.swarm[freeBeeIndex] = BeeHive.sendRandomBee(freeBeeIndex);
-				}
-				else
+				} else
 				{
 					let solution = Solutions.getSolutionToPrecise();
 
@@ -668,7 +666,7 @@ module.exports = {
 	status: BeeHive.status,
 }
 
-var measureMe = async function(runner) {
+var measureMe = async function (runner) {
 
 	let cTime = new Date().getTime();
 
@@ -686,7 +684,9 @@ var measureMe = async function(runner) {
 
 };
 
-// console.log(Calc.getFileInfoForBlocks([64, 76], INPUT));
+let unitTest = function () {
+
+// console.log(Calc.getFileInfoForBlocks([64, 76]));
 // console.log(await getFileInfoForBlocks([64, 76]));
 
 // (async function()
@@ -710,25 +710,36 @@ var measureMe = async function(runner) {
 // 	}
 // }());
 
-return Promise.resolve()
-.then(function () {
+	return Promise.resolve()
+	.then(function () {
 
-	Calc.setInput(INPUT);
+		Calc.setInput(INPUT);
 
-	// return Calc.getFileInfoForBlocks([64, 76, 25, 24, 38, 49]);
-	return Calc.getFileInfoForBlocks([64, 76]);
+		console.time('Calc.getFileInfoForBlocks');
 
-})
-.then(function (res) {
+		// let blocks = [64, 76];
+		let blocks = [];
 
-	console.log('result:', res);
+		for (let i = 0; i < 10000; i++)
+		{
+			blocks.push(i);
+		}
 
-})
-.catch(function (err) {
+		return Calc.getFileInfoForBlocks(blocks);
+		// return Calc.getFileInfoForBlocks([64, 76]);
 
-	console.error('err:', err);
+	})
+	.then(function (res) {
 
-})
+		console.timeEnd('Calc.getFileInfoForBlocks');
+		console.log('result:', res);
+
+	})
+	.catch(function (err) {
+
+		console.error('err:', err);
+
+	})
 
 // findTheBestRandomSolution();
 
@@ -746,3 +757,10 @@ return Promise.resolve()
 // console.log(info);
 
 // Solutions.getSolutionToPrecise();
+
+}
+
+if (process.argv[1] == __filename)
+{
+	unitTest();
+}
