@@ -187,16 +187,7 @@ public:
             {
                 // This operation is slow
                 std::string& blockIndex = fileBlocks[j];
-
-                if (blocksInFiles.find(blockIndex) == blocksInFiles.end())
-                {
-                    blocksInFiles[blockIndex] = 1;
-                }
-                else
-                {
-                    blocksInFiles[blockIndex] = blocksInFiles[blockIndex] + 1;
-                }
-
+                blocksInFiles[blockIndex]++;
             }
         }
 
