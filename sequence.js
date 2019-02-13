@@ -6,11 +6,12 @@
  */
 
 let generatedSequences = {};
+let generatedSequencesCount = 0;
 
 let init = function() {
 
 	generatedSequences = {};
-
+	generatedSequencesCount = 0;
 }
 
 /**
@@ -58,6 +59,7 @@ let getRandomBlockSequence = function (bitCount, fromProbability, toProbability)
 		}
 
 		generatedSequences[sequence] = true;
+		generatedSequencesCount++;
 		break;
 	}
 
@@ -129,6 +131,7 @@ let getNearSequence = function(sequence, maxBitsToChange) {
 		}
 
 		generatedSequences[newSequence] = true;
+		generatedSequencesCount++;
 
 		return newSequence;
 	}
@@ -145,10 +148,16 @@ let getNearSequence = function(sequence, maxBitsToChange) {
  */
 let sequencesToBlocks = function(sequence, blockKeys) {
 
+	if (sequence.length > blockKeys.length)
+	{
+		throw new Error(`Sequence length (${sequence.length}) is greater than blocks count (${blockKeys.length})`);
+	}
+
 	let blocks = [];
 
 	for (let i = 0; i < sequence.length; i++)
 	{
+
 		if (sequence[i] == '1')
 		{
 			blocks.push(blockKeys[i]);
@@ -170,9 +179,15 @@ let shuffle = function (a) {
 	return a;
 }
 
+let getGeneratedSequencesCount = function()
+{
+	return generatedSequencesCount;
+}
+
 module.exports = {
 	init: init,
 	getRandomBlockSequence: getRandomBlockSequence,
 	getNearSequence: getNearSequence,
 	sequencesToBlocks: sequencesToBlocks,
+	getGeneratedSequencesCount: getGeneratedSequencesCount,
 }

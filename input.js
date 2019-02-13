@@ -10,118 +10,120 @@ let inputCSV = FS.readFileSync(inputFile).toString();
 let lines = inputCSV.split('\n');
 
 for (let i = 0; i < lines.length; i++) {
-    let line = lines[i].trim();
+	let line = lines[i].trim();
 
-    if (!line) {
-        continue;
-    }
+	if (!line) {
+		continue;
+	}
 
-    if (line.indexOf('#') == 0) {
-        continue;
-    }
+	if (line.indexOf('#') == 0) {
+		continue;
+	}
 
-    let fields = line.split(',');
+	let fields = line.split(',');
 
-    let recordType = fields[0];
+	let recordType = fields[0];
 
-    switch (recordType) {
+	switch (recordType) {
 
-        case "F": {
+		case "F": {
 
-            /*
-            Fields order
-            00 - Literal 'F', meaning File
-            01 - file index (id)
-            02 - file name
-            03 - directory name
-            04 - blocks count in this file
-            05 - block id,
-            06 - block size
-            repeat 05-06
+			/*
+			Fields order
+			00 - Literal 'F', meaning File
+			01 - file index (id)
+			02 - file name
+			03 - directory name
+			04 - blocks count in this file
+			05 - block id,
+			06 - block size
+			repeat 05-06
 
-            */
+			*/
 
-            let fileIndex = fields[1];
-            let fileName = fields[2];
+			let fileIndex = fields[1];
+			let fileName = fields[2];
 
-            let unknownField = fields[3];
+			let unknownField = fields[3];
 
-            let blockCount = Number(fields[4]);
+			let blockCount = Number(fields[4]);
 
-            let fileBlocks = [];
-            let fileWeight = 0;
+			let fileBlocks = [];
+			let fileWeight = 0;
 
-            for (let j = 0; j < blockCount; j++) {
+			for (let j = 0; j < blockCount; j++) {
 
-                let pos = 5 + j * 2;
-                let blockIndex = fields[pos];
-                let blockWeight = Number(fields[pos + 1]);
+				let pos = 5 + j * 2;
+				let blockIndex = fields[pos];
+				let blockWeight = Number(fields[pos + 1]);
 
-                if (blockIndex == "169")
-                {
-                    a = 0;
-                }
+				if (blockIndex == "169")
+				{
+					a = 0;
+				}
 
-                fileBlocks.push({
-                    blockIndex: blockIndex,
-                    blockWeight: blockWeight,
-                });
+				fileBlocks.push(blockIndex);
 
-                fileWeight += blockWeight;
+				// fileBlocks.push({
+				// 	blockIndex: blockIndex,
+				// 	blockWeight: blockWeight,
+				// });
 
-                if (!BLOCKS[blockIndex]) {
-                    BLOCKS[blockIndex] = {
-                        blockIndex: blockIndex,
-                        blockWeight: blockWeight,
-                        files: {},
-                    }
-                }
+				fileWeight += blockWeight;
 
-                BLOCKS[blockIndex].files[fileIndex] = true;
-            }
+				if (!BLOCKS[blockIndex]) {
+					BLOCKS[blockIndex] = {
+						blockIndex: blockIndex,
+						blockWeight: blockWeight,
+						files: {},
+					}
+				}
 
-            for (let blockKey in BLOCKS)
-            {
-                BLOCKS[blockKey].filesKeys = Object.keys(BLOCKS[blockKey].files);
-            }
+				BLOCKS[blockIndex].files[fileIndex] = true;
+			}
 
-            if (FILES[fileIndex]) {
-                console.log('File index', fileIndex, 'already exists');
-                continue;
-            }
+			for (let blockKey in BLOCKS)
+			{
+				BLOCKS[blockKey].filesKeys = Object.keys(BLOCKS[blockKey].files);
+			}
 
-            FILES[fileIndex] = {
-                fileIndex: fileIndex,
-                fileName: fileName,
-                fileBlocks: fileBlocks,
-                fileWeight: fileWeight,
-            }
+			if (FILES[fileIndex]) {
+				console.log('File index', fileIndex, 'already exists');
+				continue;
+			}
 
-            break;
-        }
+			FILES[fileIndex] = {
+				fileIndex: fileIndex,
+				fileName: fileName,
+				fileBlocks: fileBlocks,
+				fileWeight: fileWeight,
+			}
 
-        case "B": {
+			break;
+		}
 
-            break;
-        }
+		case "B": {
 
-        case "R": {
+			break;
+		}
 
-            break;
-        }
+		case "R": {
 
-        case "D": {
+			break;
+		}
 
-            break;
-        }
+		case "D": {
 
-        default: {
+			break;
+		}
 
-            console.log('Wrong record type:', recordType);
+		default: {
 
-            break;
-        }
-    }
+			console.log('Wrong record type:', recordType);
+
+			break;
+		}
+	}
 }
 
 // console.log(BLOCKS[9]);
@@ -129,7 +131,7 @@ for (let i = 0; i < lines.length; i++) {
 // console.log(FILES[6]);
 
 module.exports = {
-    FILES: FILES,
-    BLOCKS: BLOCKS,
-    BLOCK_KEYS: Object.keys(BLOCKS),
+	FILES: FILES,
+	BLOCKS: BLOCKS,
+	BLOCK_KEYS: Object.keys(BLOCKS),
 }
