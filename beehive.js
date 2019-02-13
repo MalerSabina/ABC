@@ -21,6 +21,8 @@ let Solutions = require('./solutions');
 // Thread idle time
 let WAIT_DELAY = 0;
 
+const util = require('util');
+const GetImmediatePromise = util.promisify(setImmediate);
 /**
  * Calculates a weight of specified blocks when trying to delete them *
  *
@@ -217,8 +219,10 @@ let BeeHive = {
 		BeeHive.hasResult = false;
 		BeeHive.isUseNativeModule = options.isUseNativeModule || false;
 		BeeHive.randomBeesLeft = BeeHive.beeCount;
+		BeeHive.randomBeeAfterPrecisionStep = BeeHive.beeCount / 10;
+		BeeHive.randomBeeAfterPrecisionCount = 0;
 
-		WAIT_DELAY = Number((BeeHive.beeCount / 50).toFixed(1));
+		WAIT_DELAY = 0;// Number((BeeHive.beeCount / 50).toFixed(1));
 
 		Calc.setInput(INPUT);
 	},
@@ -325,7 +329,8 @@ let BeeHive = {
 		return Promise.resolve()
 		.then(function () {
 
-			return WAIT_DELAY && Promise.delay(WAIT_DELAY);
+			return GetImmediatePromise();
+			// return WAIT_DELAY && Promise.delay(WAIT_DELAY);
 
 		})
 		.then(function () {
@@ -363,6 +368,11 @@ let BeeHive = {
 	sendBeeToPreciseSolution: function (beeIndex, solution) {
 
 		return Promise.resolve()
+		.then(function () {
+
+			return GetImmediatePromise();
+
+		})
 		.then(async function () {
 
 			if (!solution)
@@ -530,13 +540,16 @@ let BeeHive = {
 				let availableSolutions = Solutions.getSolutions();
 				BeeHive.swarm[freeBeeIndex] = 1; // Mark as busy
 
-				if (BeeHive.randomBeesLeft > 0 || availableSolutions.length < BeeHive.maxAvailableSolutionCount)
+				if (BeeHive.randomBeesLeft > 0 || availableSolutions.length < BeeHive.maxAvailableSolutionCount || BeeHive.randomBeeAfterPrecisionCount > BeeHive.beeCount)
 				{
-					BeeHive.randomBeesLeft--;
+					BeeHive.randomBeesLeft > 0 && BeeHive.randomBeesLeft--;
+					(BeeHive.randomBeeAfterPrecisionCount > BeeHive.beeCount) && (BeeHive.randomBeeAfterPrecisionCount = 0);
 					console.log('Send a random bee, index =', freeBeeIndex);
 					BeeHive.swarm[freeBeeIndex] = BeeHive.sendRandomBee(freeBeeIndex);
-				} else
+				}
+				else
 				{
+					BeeHive.randomBeeAfterPrecisionCount += BeeHive.randomBeeAfterPrecisionStep;
 					let solution = Solutions.getSolutionToPrecise();
 
 					console.log('Send a bee to precise, index =', freeBeeIndex);
@@ -651,6 +664,7 @@ let BeeHive = {
 
 			console.log('Run time:', (new Date().getTime() - currentTime) / 1000, 'secs');
 
+			console.log(`Sequences generated: ${Sequence.getGeneratedSequencesCount()}`);
 		})
 		.catch(function (err) {
 
