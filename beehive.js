@@ -19,7 +19,7 @@ let Sequence = require('./sequence');
 // Solutions storage
 let Solutions = require('./solutions');
 // Thread idle time
-let WAIT_DELAY = 5;
+let WAIT_DELAY = 0;
 
 /**
  * Calculates a weight of specified blocks when trying to delete them *
@@ -41,6 +41,12 @@ let getFileInfoForBlocks = async function (blocks) {
 		}
 
 		let blockIndex = blocks[i];
+
+		if (!INPUT.BLOCKS[blockIndex])
+		{
+			console.log(111);
+		}
+
 		let filesForBlock = INPUT.BLOCKS[blockIndex].filesKeys;
 
 		for (let j = 0; j < filesForBlock.length; j++)
@@ -686,6 +692,8 @@ var measureMe = async function (runner) {
 
 let unitTest = function () {
 
+	let Fs = require('fs');
+
 // console.log(Calc.getFileInfoForBlocks([64, 76]));
 // console.log(await getFileInfoForBlocks([64, 76]));
 
@@ -710,20 +718,23 @@ let unitTest = function () {
 // 	}
 // }());
 
+	// let blocks = [64, 76];
+
+	let sequence = Sequence.getRandomBlockSequence(INPUT.BLOCK_KEYS.length, 0, 50);
+
+	console.log('Sequence:', sequence);
+
+	let blocks = Sequence.sequencesToBlocks(sequence, INPUT.BLOCK_KEYS);
+
+	let resultCpp;
+	let resultJS;
+
 	return Promise.resolve()
 	.then(function () {
 
 		Calc.setInput(INPUT);
 
 		console.time('Calc.getFileInfoForBlocks');
-
-		// let blocks = [64, 76];
-		let blocks = [];
-
-		for (let i = 0; i < 10000; i++)
-		{
-			blocks.push(i);
-		}
 
 		return Calc.getFileInfoForBlocks(blocks);
 		// return Calc.getFileInfoForBlocks([64, 76]);
@@ -732,7 +743,58 @@ let unitTest = function () {
 	.then(function (res) {
 
 		console.timeEnd('Calc.getFileInfoForBlocks');
-		console.log('result:', res);
+
+		resultCpp = res;
+
+		// console.log('result:', res);
+
+		console.time('getFileInfoForBlocks');
+		return getFileInfoForBlocks(blocks);
+
+	})
+	.then(function (res) {
+
+		console.timeEnd('getFileInfoForBlocks');
+
+		resultJS = res;
+
+		let isAllOk = true;
+
+		let resultCppBlocksStr = resultCpp.blocks.sort().join(',');
+		let resultJSBlocksStr = resultJS.blocks.sort().join(',');
+
+		if (resultCppBlocksStr != resultJSBlocksStr)
+		{
+			console.error('Blocks do not match');
+			console.log('CPP:', resultCppBlocksStr);
+			console.log('JS :', resultJSBlocksStr);
+			isAllOk = false;
+		}
+
+		let resultCppFilesStr = resultCpp.files.sort().join(',');
+		let resultJSBFilesStr = resultJS.files.sort().join(',');
+
+		if (resultCppFilesStr != resultJSBFilesStr)
+		{
+			console.error('Files do not match');
+			console.log('CPP:', resultCppFilesStr);
+			console.log('JS :', resultJSBFilesStr);
+			isAllOk = false;
+		}
+
+		if (resultCpp.weight != resultJS.weight)
+		{
+			console.log('Weight does not match');
+			console.error('Files do not match');
+			console.log('CPP:', resultCpp.weight);
+			console.log('JS :', resultJS.weight);
+			isAllOk = false;
+		}
+
+		if (isAllOk == true)
+		{
+			console.info('All Correct');
+		}
 
 	})
 	.catch(function (err) {

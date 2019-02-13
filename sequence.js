@@ -145,10 +145,16 @@ let getNearSequence = function(sequence, maxBitsToChange) {
  */
 let sequencesToBlocks = function(sequence, blockKeys) {
 
+	if (sequence.length > blockKeys.length)
+	{
+		throw new Error(`Sequence length (${sequence.length}) is greater than blocks count (${blockKeys.length})`);
+	}
+
 	let blocks = [];
 
 	for (let i = 0; i < sequence.length; i++)
 	{
+
 		if (sequence[i] == '1')
 		{
 			blocks.push(blockKeys[i]);

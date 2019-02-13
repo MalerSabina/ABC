@@ -154,10 +154,10 @@ public:
 
         for (int i = 0; i < blocks.size(); i++)
         {
-            std::string blockIndex = blocks[i];
-//            printf("blockIndex = %d\n", blockIndex.c_str());
+            std::string& blockIndex = blocks[i];
+//            printf("blockIndex = %s\n", blockIndex.c_str());
 
-            std::unordered_map<std::string, int> filesForBlock = BLOCKS[blockIndex];
+            std::unordered_map<std::string, int>& filesForBlock = BLOCKS[blockIndex];
 
             for(std::unordered_map<std::string, int>::iterator it = filesForBlock.begin(); it != filesForBlock.end(); it++)
             {
@@ -178,15 +178,15 @@ public:
 
         for (int i = 0; i < files.size(); i++)
         {
-            std::string file = files[i];
+            std::string& file = files[i];
 
-            std::vector<std::string> fileBlocks = FILES[file];
+            std::vector<std::string>& fileBlocks = FILES[file];
 //        printf("fileBlocksLength = %d\n", fileBlocks.size());
 
             for (int j = 0; j < fileBlocks.size(); j++)
             {
                 // This operation is slow
-                std::string blockIndex = fileBlocks[j];
+                std::string& blockIndex = fileBlocks[j];
 
                 if (blocksInFiles.find(blockIndex) == blocksInFiles.end())
                 {
@@ -209,7 +209,7 @@ public:
             std::string blockIndex = it->first;
             int blockCount = it->second;
 
-            std::unordered_map<std::string, int> inputBlocksAtIndex = BLOCKS[blockIndex];
+            std::unordered_map<std::string, int>& inputBlocksAtIndex = BLOCKS[blockIndex];
 
             int filesBlockCount = inputBlocksAtIndex.size();
 
