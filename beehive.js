@@ -216,6 +216,7 @@ let BeeHive = {
 		BeeHive.isCancel = false;
 		BeeHive.hasResult = false;
 		BeeHive.isUseNativeModule = options.isUseNativeModule || false;
+		BeeHive.randomBeesLeft = BeeHive.beeCount;
 
 		WAIT_DELAY = Number((BeeHive.beeCount / 50).toFixed(1));
 
@@ -529,8 +530,9 @@ let BeeHive = {
 				let availableSolutions = Solutions.getSolutions();
 				BeeHive.swarm[freeBeeIndex] = 1; // Mark as busy
 
-				if (availableSolutions.length < BeeHive.maxAvailableSolutionCount)
+				if (BeeHive.randomBeesLeft > 0 || availableSolutions.length < BeeHive.maxAvailableSolutionCount)
 				{
+					BeeHive.randomBeesLeft--;
 					console.log('Send a random bee, index =', freeBeeIndex);
 					BeeHive.swarm[freeBeeIndex] = BeeHive.sendRandomBee(freeBeeIndex);
 				} else
