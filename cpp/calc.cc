@@ -2,14 +2,15 @@
 #include <napi.h>
 //#include <node.h>
 #include <exception>
-//#include <map>
-#include <unordered_map>
 
 #if defined _WIN32
 #include <windows.h>
 #else
 #include <unistd.h>
 #endif
+
+#include "sparsepp/spp.h"
+using spp::sparse_hash_map;
 
 namespace calc {
 
@@ -27,7 +28,8 @@ void copyNapiArrayToVector(std::vector<std::string>& dest, const Napi::Array& ar
 
     for (int i = 0; i < length; i++)
     {
-        std::string value = arr[i].ToString();
+        const auto& arrValue = arr[i];
+        std::string value = arrValue.ToString();
         dest.push_back(value);
     }
 }
@@ -38,21 +40,24 @@ void copyVectorToNapiArray(Napi::Env env, Napi::Array& arr, std::vector<std::str
 
     for (int i = 0; i < length; i++)
     {
-        arr[i] = src[i].c_str();
+        const auto& value = src[i];
+        arr[i] = value.c_str();
     }
 }
 
-static std::unordered_map<std::string, std::vector<std::string> > FILES = {};
-static std::unordered_map<std::string, std::unordered_map<std::string, int> > BLOCKS = {};
-static std::unordered_map<std::string, int> BLOCK_WEIGHTS = {};
+static sparse_hash_map<std::string, std::vector<std::string> > FILES;
+static sparse_hash_map<std::string, sparse_hash_map<std::string, int> > BLOCKS;
+static sparse_hash_map<std::string, int> BLOCK_WEIGHTS;
 static std::vector<std::string> BLOCK_KEYS = {};
 
 Napi::Value setInput(const Napi::CallbackInfo& info)
 {
-    const Napi::Object INPUT = info[0].As<Napi::Object>();
+    const auto& INPUT = info[0].As<Napi::Object>();
     Napi::Object files = INPUT["FILES"].ToObject();
     Napi::Object blocks = INPUT["BLOCKS"].As<Napi::Object>();
     const Napi::Array blockKeys = INPUT["BLOCK_KEYS"].As<Napi::Array>();
+
+    BLOCK_WEIGHTS = {};
 
     // FILES processing
     FILES = {};
@@ -60,7 +65,7 @@ Napi::Value setInput(const Napi::CallbackInfo& info)
 
     for (int i = 0; i < (int)fileIds.Length(); i++)
     {
-        std::string fileId = fileIds[i].ToString();
+        const std::string fileId = fileIds[i].ToString();
         std::vector<std::string> fileBlocks = {};
 
         const Napi::Object fileItem = files.Get(fileId).As<Napi::Object>();
@@ -72,46 +77,31 @@ Napi::Value setInput(const Napi::CallbackInfo& info)
 
     // BLOCKS processing
     BLOCKS = {};
+
     const Napi::Array blockIds = blocks.GetPropertyNames();
     int blockIdsLength = (int)blockIds.Length();
 
     for (int i = 0; i < blockIdsLength; i++)
     {
-        std::string blockId = blockIds[i].ToString();
+        const std::string blockId = blockIds[i].ToString();
         const Napi::Object blockItem = blocks.Get(blockId).As<Napi::Object>();
 
         int blockWeight = blockItem["blockWeight"].ToNumber().Int32Value();
         BLOCK_WEIGHTS[blockId] = blockWeight;
 
         Napi::Object filesInBlockObject = blockItem["files"].As<Napi::Object>();
-        std::unordered_map<std::string, int> filesInBlock = {};
+        sparse_hash_map<std::string, int> filesInBlock;
 
         const Napi::Array fileIdsInBlock = filesInBlockObject.GetPropertyNames();
 
         for (int j = 0; j < (int) fileIdsInBlock.Length(); j++)
         {
-            std::string fileId = fileIdsInBlock[j].ToString();
+            const std::string fileId = fileIdsInBlock[j].ToString();
             filesInBlock[fileId] = 1;
         }
 
         BLOCKS[blockId] = filesInBlock;
     }
-
-//      Test
-//    for (int i = 0; i < 3; i++)
-//    {
-//        std::string blockId = blockIds[i].ToString();
-//
-//        std::unordered_map<std::string, int> filesInBlock = BLOCKS[blockId];
-//
-//        for(std::unordered_map<std::string, int>::iterator it = filesInBlock.begin(); it != filesInBlock.end(); it++)
-//        {
-//            std::string key = it->first;
-////            int value = it->second;
-//            //Do something
-//            printf("Block %s, fileId %s\n", blockId.c_str(), key.c_str());
-//        }
-//    }
 
     BLOCK_KEYS = {};
     copyNapiArrayToVector(BLOCK_KEYS, blockKeys);
@@ -137,63 +127,61 @@ public:
     CalcWorker(Napi::Function& callback, Napi::Promise::Deferred deferred, const Napi::CallbackInfo& cInfo)
     : Napi::AsyncWorker(callback), deferred(deferred), info(cInfo) {
 
-        const Napi::Array blocksParam = info[0].As<Napi::Array>();
+        const auto& blocksParam = info[0].As<Napi::Array>();
         copyNapiArrayToVector(blocks, blocksParam);
     }
+
     ~CalcWorker() {}
 
     void Execute () {
 
-        try {
-
 //        Sleep(delay);
 
-          std::unordered_map<std::string, int> filesMap = {};
+        sparse_hash_map<std::string, int> filesMap;
 
         for (int i = 0; i < blocks.size(); i++)
         {
-            std::string& blockIndex = blocks[i];
+            const auto& blockIndex = blocks[i];
+            const auto& filesForBlock = BLOCKS[blockIndex];
 //            printf("blockIndex = %s\n", blockIndex.c_str());
 
-            std::unordered_map<std::string, int>& filesForBlock = BLOCKS[blockIndex];
-
-            for(std::unordered_map<std::string, int>::iterator it = filesForBlock.begin(); it != filesForBlock.end(); it++)
+            for (const auto& it : filesForBlock)
             {
-                filesMap[it->first] = 1;
+                filesMap[it.first] = 1;
             }
         }
 
-        std::unordered_map<std::string, int> blocksInFiles = {};
+        sparse_hash_map<std::string, int> blocksInFiles;
 
-        for(std::unordered_map<std::string, int>::iterator it = filesMap.begin(); it != filesMap.end(); it++)
+        for (const auto& it : filesMap)
         {
-            files.push_back(it->first);
+            files.push_back(it.first);
         }
 
 //    printf("filesLength = %d\n", files.size());
 
         for (int i = 0; i < files.size(); i++)
         {
-            std::vector<std::string> const& fileBlocks = FILES[files[i]];
+            const auto& fileBlocks = FILES[files[i]];
+            int fileBlocksSize = fileBlocks.size();
 //        printf("fileBlocksLength = %d\n", fileBlocks.size());
 
-            int fileBlocksSize = fileBlocks.size();
             for (int j = 0; j < fileBlocksSize; j++)
             {
                 blocksInFiles[fileBlocks[j]]++;
             }
         }
 
-        std::unordered_map<std::string, int> blocksToRemoveMap = {};
+        sparse_hash_map<std::string, int> blocksToRemoveMap;
 
 //        printf("blocksInFiles length = %d\n", blocksInFiles.size());
 
-        for(std::unordered_map<std::string, int>::iterator it = blocksInFiles.begin(); it != blocksInFiles.end(); it++)
+        for (const auto& it : blocksInFiles)
         {
-            std::string blockIndex = it->first;
-            int blockCount = it->second;
+            const auto& blockIndex = it.first;
+            int blockCount = it.second;
 
-            std::unordered_map<std::string, int> const& inputBlocksAtIndex = BLOCKS[blockIndex];
+            const auto & inputBlocksAtIndex = BLOCKS[blockIndex];
 
             int filesBlockCount = inputBlocksAtIndex.size();
 
@@ -205,17 +193,9 @@ public:
             }
         }
 
-        for(std::unordered_map<std::string, int>::iterator it = blocksToRemoveMap.begin(); it != blocksToRemoveMap.end(); it++)
+        for (const auto& it : blocksToRemoveMap)
         {
-            blocksToRemove.push_back(it->first);
-        }
-
-
-        }
-        catch (std::exception e)
-        {
-            printf("Error On Execute: %s\n", e.what());
-            SetError(e.what());
+            blocksToRemove.push_back(it.first);
         }
 
 //        printf("Inside CalcWorker Execute with Result\n");
